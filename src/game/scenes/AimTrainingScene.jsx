@@ -1,8 +1,10 @@
-import { useRef } from "react";
+import { use, useRef } from "react";
 import { PointerLockControls } from "@react-three/drei";
+import useFPSControls from "../hooks/useFPSControls";
 
 export default function AimTrainingScene() {
   const cubeRef = useRef();
+  useFPSControls();
 
   return (
     <>
