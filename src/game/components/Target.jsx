@@ -15,9 +15,9 @@ const Target = forwardRef(({ position }, ref) => {
   }));
 
   return (
-    <mesh ref={meshRef} position={position}>
+    <mesh receiveShadow  ref={meshRef} position={position }>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="red" />
+      <meshStandardMaterial color="red" roughness={0.4} metalness={0.1} />
     </mesh>
   );
 });
