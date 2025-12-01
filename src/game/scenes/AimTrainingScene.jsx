@@ -16,6 +16,9 @@ export default function AimTrainingScene() {
   const targetRefs = [useRef(), useRef(), useRef()];
 
   const handleShoot = () => {
+
+    Gun.shoot(); // trigger gun flash
+
     const raycaster = new THREE.Raycaster(); // https://threejs.org/docs/?q=raycas#Raycaster
 
     const cameraDirection = new THREE.Vector3();
