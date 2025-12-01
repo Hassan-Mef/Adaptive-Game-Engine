@@ -7,7 +7,7 @@ const Target = forwardRef(({ position }, ref) => {
   useImperativeHandle(ref, () => ({
     respawn: () => {
       const randomX = (Math.random() - 0.5) * 6;  // -3 to +3
-      const randomY = Math.random() * 2 + 1.5;    // 1.5 to 3.5
+      const randomY = Math.random() * 2 + 2;    // 1.5 to 3.5
       const randomZ = -(Math.random() * 7 + 5);   // -5 to -12
       meshRef.current.position.set(randomX, randomY, randomZ);
     },

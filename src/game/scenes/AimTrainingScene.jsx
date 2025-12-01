@@ -1,32 +1,55 @@
 import { useEffect, useRef } from "react";
-import { PointerLockControls } from "@react-three/drei";
+import { PointerLockControls, PositionalAudio } from "@react-three/drei";
 import useFPSControls from "../hooks/useFPSControls";
-import { Raycaster } from "three";
 import * as THREE from "three";
-import { useThree } from "@react-three/fiber";
+import { useThree, useLoader } from "@react-three/fiber";
 import Target from "../components/Target";
 import { Sky } from "@react-three/drei";
 import Gun from "../components/Gun/Gun";
-import { TextureLoader, RepeatWrapping } from 'three';
 
 export default function AimTrainingScene() {
   const { camera } = useThree();
   const scoreRef = useRef(0);
 
+  // gun sfx
+  const gunshotSound = useRef();
+  const audioBuffer = useLoader(THREE.AudioLoader, "/Gun/Gun_shot.mp3");
+
   const targetRefs = [useRef(), useRef(), useRef()];
 
+  const gunSounds = useRef([]);
+  const POOL_SIZE = 5;
+
+  useEffect(() => {
+    const listener = new THREE.AudioListener();
+    camera.add(listener);
+
+    for (let i = 0; i < POOL_SIZE; i++) {
+      const sound = new THREE.Audio(listener);
+      sound.setBuffer(audioBuffer);
+      sound.setVolume(0.5);
+      gunSounds.current.push(sound);
+    }
+  }, [audioBuffer, camera]);
+
+  let soundIndex = 0;
+
   const handleShoot = () => {
+     if (gunSounds.current.length) {
+      gunSounds.current[soundIndex].stop();
+    gunSounds.current[soundIndex].play();
+    console.log("Testing: Playing sound", soundIndex);
+    soundIndex = (soundIndex + 1) % POOL_SIZE;
+  }
+
 
     Gun.shoot(); // trigger gun flash
 
-    const raycaster = new THREE.Raycaster(); // https://threejs.org/docs/?q=raycas#Raycaster
-
+    const raycaster = new THREE.Raycaster();
     const cameraDirection = new THREE.Vector3();
-    // getting camera direction
     camera.getWorldDirection(cameraDirection);
     cameraDirection.normalize();
 
-    // set ray origin and direction
     raycaster.set(camera.position, cameraDirection);
 
     targetRefs.forEach((targetRef) => {
@@ -41,12 +64,7 @@ export default function AimTrainingScene() {
     });
   };
 
-  
-
-  
-
   useEffect(() => {
-    const shoot = () => handleShoot();
     window.addEventListener("mousedown", handleShoot);
     return () => {
       window.removeEventListener("mousedown", handleShoot);
@@ -57,10 +75,6 @@ export default function AimTrainingScene() {
 
   return (
     <>
-      {/* Lighting */}
-      {/* <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 10, 5]} intensity={1} castShadow  /> */}
-
       <Sky
         sunPosition={[10, 15, 20]}
         turbidity={8}
@@ -69,15 +83,11 @@ export default function AimTrainingScene() {
         mieDirectionalG={0.8}
       />
 
-      {/* <hemisphereLight intensity={0.4} groundColor="black" />
-      <spotLight position={[5, 8, 5]} angle={0.5} intensity={1} castShadow /> */}
-
       <hemisphereLight
         intensity={0.6}
         skyColor={"#b1e1ff"}
         groundColor={"#444"}
       />
-
       <directionalLight
         castShadow
         position={[10, 15, 10]}
@@ -91,27 +101,20 @@ export default function AimTrainingScene() {
         shadow-camera-top={15}
         shadow-camera-bottom={-15}
       />
-
       <ambientLight intensity={0.4} />
-
-      {/* <mesh scale={[20, 10, 20]}>
-        <boxGeometry />
-        <meshStandardMaterial color="#0cececff" side={THREE.BackSide} />
-      </mesh> */}
 
       <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[50, 50]} />
-        <meshStandardMaterial color="#696969ff" />
+        <meshStandardMaterial color="#FFFFFFF" />
       </mesh>
 
       <Gun />
 
-      {/* Cube target */}
+      {/* Cube targets */}
       <Target ref={targetRefs[0]} position={[0, 2, -10]} />
       <Target ref={targetRefs[1]} position={[-2, 3, -8]} />
       <Target ref={targetRefs[2]} position={[2, 1.5, -12]} />
 
-      {/* FPS Controls */}
       <PointerLockControls />
     </>
   );
