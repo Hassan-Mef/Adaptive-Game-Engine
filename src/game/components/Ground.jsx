@@ -15,7 +15,7 @@ export default function Ground() {
   const roughnessMap = useLoader(EXRLoader, '/Textures/dirt_1k.blend/textures/dirt_rough_1k.exr');
 
   return (
-    <mesh ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+    <mesh name='ground' ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <planeGeometry args={[200, 200, 128, 128]} onUpdate={geo => geo.setAttribute('uv2', new THREE.BufferAttribute(geo.attributes.uv.array, 2))} />
       <meshStandardMaterial
         map={colorMap}

@@ -1,12 +1,12 @@
 import { useEffect, useRef , useState} from "react";
 import { PointerLockControls, PositionalAudio } from "@react-three/drei";
-import useFPSControls from "../hooks/useFPSControls";
 import * as THREE from "three";
 import { useThree, useLoader } from "@react-three/fiber";
 import Target from "../components/Target";
 import { Sky } from "@react-three/drei";
 import Gun from "../components/Gun/Gun";
 import ImpactParticles from "../components/ImpactParticles";
+import usePlayer from "../hooks/usePlayer";
 
 
 export default function AimTrainingScene() {
@@ -84,8 +84,7 @@ export default function AimTrainingScene() {
     };
   }, []);
 
-  useFPSControls();
-
+  usePlayer();
   return (
     <>
       <Sky
@@ -116,10 +115,10 @@ export default function AimTrainingScene() {
       />
       <ambientLight intensity={0.4} />
 
-      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      {/* <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[50, 50]} />
         <meshStandardMaterial color="#ffffff" />
-      </mesh>
+      </mesh> */}
 
       <Gun />
 
