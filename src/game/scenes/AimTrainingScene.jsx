@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef , useState} from "react";
 import { PointerLockControls, PositionalAudio } from "@react-three/drei";
 import useFPSControls from "../hooks/useFPSControls";
 import * as THREE from "three";
@@ -6,10 +6,13 @@ import { useThree, useLoader } from "@react-three/fiber";
 import Target from "../components/Target";
 import { Sky } from "@react-three/drei";
 import Gun from "../components/Gun/Gun";
+import ImpactParticles from "../components/ImpactParticles";
+
 
 export default function AimTrainingScene() {
   const { camera } = useThree();
   const scoreRef = useRef(0);
+  const [particles, setParticles] = useState([]);
 
   // gun sfx
   const gunshotSound = useRef();
@@ -19,6 +22,14 @@ export default function AimTrainingScene() {
 
   const gunSounds = useRef([]);
   const POOL_SIZE = 5;
+
+  const handleHit = (hitPosition) => {
+    // Add new particle burst
+    setParticles((prev) => [
+      ...prev,
+      { position: hitPosition, id: Date.now() },
+    ]);
+  };
 
   useEffect(() => {
     const listener = new THREE.AudioListener();
@@ -35,13 +46,12 @@ export default function AimTrainingScene() {
   let soundIndex = 0;
 
   const handleShoot = () => {
-     if (gunSounds.current.length) {
+    if (gunSounds.current.length) {
       gunSounds.current[soundIndex].stop();
-    gunSounds.current[soundIndex].play();
-    console.log("Testing: Playing sound", soundIndex);
-    soundIndex = (soundIndex + 1) % POOL_SIZE;
-  }
-
+      gunSounds.current[soundIndex].play();
+      console.log("Testing: Playing sound", soundIndex);
+      soundIndex = (soundIndex + 1) % POOL_SIZE;
+    }
 
     Gun.shoot(); // trigger gun flash
 
@@ -58,6 +68,9 @@ export default function AimTrainingScene() {
         console.log("Hit!");
         scoreRef.current += 1;
         console.log("Score:", scoreRef.current);
+
+        // Trigger particle effect
+        handleHit(hits[0].point);
 
         targetRef.current.respawn();
       }
@@ -105,7 +118,7 @@ export default function AimTrainingScene() {
 
       <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[50, 50]} />
-        <meshStandardMaterial color="#FFFFFFF" />
+        <meshStandardMaterial color="#ffffff" />
       </mesh>
 
       <Gun />
@@ -114,6 +127,18 @@ export default function AimTrainingScene() {
       <Target ref={targetRefs[0]} position={[0, 2, -10]} />
       <Target ref={targetRefs[1]} position={[-2, 3, -8]} />
       <Target ref={targetRefs[2]} position={[2, 1.5, -12]} />
+
+      {particles.map((p) => (
+        <ImpactParticles
+          key={p.id}
+          position={p.position}
+          onComplete={() =>
+            setParticles((prev) =>
+              prev.filter((particle) => particle.id !== p.id)
+            )
+          }
+        />
+      ))}
 
       <PointerLockControls />
     </>
