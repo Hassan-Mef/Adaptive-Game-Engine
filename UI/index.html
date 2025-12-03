@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thunder Strike</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="glow">⚡ THUNDER STRIKE ⚡</h1>
+        <a href="#loginPopup" class="btn">Login</a>
+        <a href="#signupPopup" class="btn">Sign Up</a>
+    </div>
+
+<!-- Login Popup -->
+<div class="overlay" id="loginPopup">
+    <div class="popup">
+        <a href="#" class="close-btn">&times;</a>
+        <h2>Login</h2>
+        <input type="text" placeholder="User ID" id="loginId">
+        <input type="password" placeholder="Password" id="loginPass">
+        <button class="btn" style="width: 100%;" onclick="login()">Login & Start Game</button>
+        <div class="switch">
+            Don't have an account? <a href="#signupPopup" class="switch-link">Sign Up</a>
+        </div>
+    </div>
+</div>
+
+<!-- Sign Up Popup -->
+<div class="overlay" id="signupPopup">
+    <div class="popup">
+        <a href="#" class="close-btn">&times;</a>
+        <h2>Sign Up</h2>
+        <input type="text" placeholder="Name" id="signupName">
+        <input type="number" placeholder="Age" id="signupAge">
+        <input type="text" placeholder="User ID" id="signupId">
+        <input type="password" placeholder="Password" id="signupPass">
+        <button class="btn" style="width: 100%;" onclick="signup()">Register & Start Game</button>
+        <div class="switch">
+            Already have an account? <a href="#loginPopup" class="switch-link">Login</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function login() {
+        const id = document.getElementById('loginId').value.trim();
+        const pass = document.getElementById('loginPass').value.trim();
+
+        if(id === "" || pass === "") {
+            alert("Please fill in both User ID and Password to login!");
+        } else {
+            window.location.href = "start.html";
+        }
+    }
+
+    function signup() {
+        const name = document.getElementById('signupName').value.trim();
+        const age = document.getElementById('signupAge').value.trim();
+        const id = document.getElementById('signupId').value.trim();
+        const pass = document.getElementById('signupPass').value.trim();
+
+        if(name === "" || age === "" || id === "" || pass === "") {
+            alert("Please fill in all fields to sign up!");
+        } else {
+            window.location.href = "start.html";
+        }
+    }
+</script>
+</body>
+</html>
