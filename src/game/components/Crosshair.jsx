@@ -19,7 +19,7 @@ export default function Crosshair() {
           left: "0",
           width: "100%",
           height: "2px",
-          backgroundColor: "white",
+          backgroundColor: "black",
           transform: "translateY(-1px)",
         }}
       />
@@ -30,7 +30,7 @@ export default function Crosshair() {
           top: "0",
           width: "2px",
           height: "100%",
-          backgroundColor: "white",
+          backgroundColor: "black",
           transform: "translateX(-1px)",
         }}
       />
