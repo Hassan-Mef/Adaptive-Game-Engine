@@ -16,7 +16,7 @@ export default function Ground() {
 
   return (
     <mesh name='ground' ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <planeGeometry args={[200, 200, 128, 128]} onUpdate={geo => geo.setAttribute('uv2', new THREE.BufferAttribute(geo.attributes.uv.array, 2))} />
+      <planeGeometry args={[100, 100, 12, 12]} onUpdate={geo => geo.setAttribute('uv2', new THREE.BufferAttribute(geo.attributes.uv.array, 2))} />
       <meshStandardMaterial
         map={colorMap}
         normalMap={normalMap}

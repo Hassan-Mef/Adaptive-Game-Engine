@@ -148,10 +148,10 @@ export default function usePlayer() {
     }
 
     // movement Range:
-    const MIN_X = -2;
-    const MAX_X = 2;
-    const MIN_Z = -1;
-    const MAX_Z =8;
+    const MIN_X = -82;
+    const MAX_X =  82;
+    const MIN_Z = -81;
+    const MAX_Z =  88;
 
     // Clamp the position
     camera.position.x = THREE.MathUtils.clamp(camera.position.x, MIN_X, MAX_X);
