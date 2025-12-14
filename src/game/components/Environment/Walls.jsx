@@ -1,78 +1,61 @@
 import { useLoader } from "@react-three/fiber";
-import React from "react";
 import * as THREE from "three";
-import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader";
+import React, { useEffect } from "react";
 
 export default function Walls() {
-  // Load textures correctly (JPG/PNG with TextureLoader)
-  const colorMap = useLoader(
+  const albedo = useLoader(
     THREE.TextureLoader,
-    "/Textures/castle_wall_varriation_1k.blend/textures/castle_wall_varriation_diff_1k.jpg"
+    "/Textures/Cracked_Dark_Cement_Wall_mlexuytve_2k/Cracked_Dark_Cement_Wall_mlexuytve_2k_Albedo.jpg"
   );
 
-  const displacementMap = useLoader(
+  const normal = useLoader(
     THREE.TextureLoader,
-    "/Textures/castle_wall_varriation_1k.blend/textures/castle_wall_varriation_disp_1k.png"
+    "/Textures/Cracked_Dark_Cement_Wall_mlexuytve_2k/Cracked_Dark_Cement_Wall_mlexuytve_2k_Normal.jpg"
   );
 
-  // EXR maps with EXRLoader
-  const normalMap = useLoader(
-    EXRLoader,
-    "/Textures/castle_wall_varriation_1k.blend/textures/castle_wall_varriation_nor_gl_1k.exr"
-  );
-
-  const roughnessMap = useLoader(
+  const roughness = useLoader(
     THREE.TextureLoader,
-    "/Textures/castle_wall_varriation_1k.blend/textures/castle_wall_varriation_rough_1k.jpg"
+    "/Textures/Cracked_Dark_Cement_Wall_mlexuytve_2k/Cracked_Dark_Cement_Wall_mlexuytve_2k_Roughness.jpg"
   );
 
-  // Allow repeating patterns
-  colorMap.wrapS = colorMap.wrapT = THREE.RepeatWrapping;
-  normalMap.wrapS = normalMap.wrapT = THREE.RepeatWrapping;
-  roughnessMap.wrapS = roughnessMap.wrapT = THREE.RepeatWrapping;
-  displacementMap.wrapS = displacementMap.wrapT = THREE.RepeatWrapping;
+  // Texture settings
+  useEffect(() => {
+    [albedo, normal, roughness].forEach((tex) => {
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(4, 2);
+      tex.anisotropy = 8;
+    });
 
-  colorMap.repeat.set(4, 2);
-  normalMap.repeat.set(4, 2);
-  roughnessMap.repeat.set(4, 2);
-  displacementMap.repeat.set(4, 2);
+    // DX normal map fix
+    normal.flipY = false;
+  }, [albedo, normal, roughness]);
+
+  const materialProps = {
+    map: albedo,
+    normalMap: normal,
+    roughnessMap: roughness,
+    roughness: 0.8,
+    metalness: 0.05, // slight sci-fi polish
+  };
 
   return (
     <group name="walls">
       {/* Back wall */}
       <mesh position={[0, 5, -20]} receiveShadow castShadow>
         <boxGeometry args={[40, 10, 1]} />
-        <meshStandardMaterial
-          map={colorMap}
-          normalMap={normalMap}
-          roughnessMap={roughnessMap}
-          displacementMap={displacementMap}
-          displacementScale={0.1}
-        />
+        <meshStandardMaterial {...materialProps} />
       </mesh>
 
       {/* Left wall */}
       <mesh position={[-20, 5, -1]} receiveShadow castShadow>
         <boxGeometry args={[1, 10, 50]} />
-        <meshStandardMaterial
-          map={colorMap}
-          normalMap={normalMap}
-          roughnessMap={roughnessMap}
-          displacementMap={displacementMap}
-          displacementScale={0.1}
-        />
+        <meshStandardMaterial {...materialProps} />
       </mesh>
 
       {/* Right wall */}
       <mesh position={[20, 5, -1]} receiveShadow castShadow>
         <boxGeometry args={[1, 10, 50]} />
-        <meshStandardMaterial
-          map={colorMap}
-          normalMap={normalMap}
-          roughnessMap={roughnessMap}
-          displacementMap={displacementMap}
-          displacementScale={0.1}
-        />
+        <meshStandardMaterial {...materialProps} />
       </mesh>
     </group>
   );
