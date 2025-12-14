@@ -6,17 +6,30 @@ import { EXRLoader } from 'three/examples/jsm/loaders/EXRLoader';
 export default function Ground() {
   const meshRef = useRef();
 
-  // Load simple textures
-  const colorMap = useLoader(THREE.TextureLoader, '/Textures/dirt_1k.blend/textures/dirt_diff_1k.jpg');
-  const displacementMap = useLoader(THREE.TextureLoader, '/Textures/dirt_1k.blend/textures/dirt_disp_1k.png');
+const colorMap = useLoader(
+    THREE.TextureLoader,
+    "/Textures/granite_tile_2k.blend/textures/granite_tile_diff_2k.jpg"
+  );
 
-  // For EXR textures, use EXRLoader
-  const normalMap = useLoader(EXRLoader, '/Textures/dirt_1k.blend/textures/dirt_nor_gl_1k.exr');
-  const roughnessMap = useLoader(EXRLoader, '/Textures/dirt_1k.blend/textures/dirt_rough_1k.exr');
+  const displacementMap = useLoader(
+    THREE.TextureLoader,
+    "/Textures/granite_tile_2k.blend/textures/granite_tile_disp_2k.png"
+  );
+
+  // EXR maps with EXRLoader
+  const normalMap = useLoader(
+    EXRLoader,
+    "/Textures/granite_tile_2k.blend/textures/granite_tile_nor_gl_2k.exr"
+  );
+
+  const roughnessMap = useLoader(
+    EXRLoader,
+    "/Textures/granite_tile_2k.blend/textures/granite_tile_rough_2k.exr"
+  );
 
   return (
     <mesh name='ground' ref={meshRef} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <planeGeometry args={[200, 200, 128, 128]} onUpdate={geo => geo.setAttribute('uv2', new THREE.BufferAttribute(geo.attributes.uv.array, 2))} />
+      <planeGeometry args={[100, 100, 12, 12]} onUpdate={geo => geo.setAttribute('uv2', new THREE.BufferAttribute(geo.attributes.uv.array, 2))} />
       <meshStandardMaterial
         map={colorMap}
         normalMap={normalMap}

@@ -7,6 +7,8 @@ import { Sky } from "@react-three/drei";
 import Gun from "../components/Gun/Gun";
 import ImpactParticles from "../components/ImpactParticles";
 import usePlayer from "../hooks/usePlayer";
+import { LevelLayout } from "../components/Environment/index";
+
 
 
 export default function AimTrainingScene() {
@@ -119,6 +121,7 @@ export default function AimTrainingScene() {
         <planeGeometry args={[50, 50]} />
         <meshStandardMaterial color="#ffffff" />
       </mesh> */}
+      <LevelLayout />
 
       <Gun />
 
