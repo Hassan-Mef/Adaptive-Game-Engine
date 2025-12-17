@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { poolPromise } = require('./config/db');
+const playerRoutes = require('./routes/player.routes');
 
 const app = express();
 
@@ -29,6 +30,8 @@ app.get('/db-test', async (req, res) => {
     });
   }
 });
+
+app.use('/api/player', playerRoutes);
 
 /* ---------- FALLBACK ---------- */
 app.use((req, res) => {
