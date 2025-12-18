@@ -7,22 +7,28 @@ const config = {
   server: process.env.DB_SERVER,
   port: parseInt(process.env.DB_PORT),
   options: {
-    encrypt: false,              
-    trustServerCertificate: true 
+    encrypt: false,
+    trustServerCertificate: true
   }
 };
 
-const poolPromise = new sql.ConnectionPool(config)
-  .connect()
-  .then(pool => {
+let poolPromise;
+
+async function connectDB() {
+  try {
+    const pool = await sql.connect(config);
     console.log('✅ Connected to MS SQL Server');
-    return pool;
-  })
-  .catch(err => {
-    console.error('❌ Database Connection Failed:', err.message);
-  });
+    poolPromise = pool;
+  } catch (err) {
+    console.error('❌ DB connection failed:', err.message);
+    process.exit(1); // HARD FAIL (correct behavior)
+  }
+}
+
+// connect immediately
+connectDB();
 
 module.exports = {
   sql,
-  poolPromise
+  getPool: () => poolPromise
 };

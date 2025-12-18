@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const { poolPromise } = require('./config/db');
 const playerRoutes = require('./routes/player.routes');
 const gameRoutes = require('./routes/game.routes');
+const { getPool } = require('./config/db');
 
 const app = express();
 
@@ -16,19 +16,15 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'Backend is running 🚀' });
 });
 
+
+
 app.get('/db-test', async (req, res) => {
   try {
-    const pool = await poolPromise;
+    const pool = getPool();
     const result = await pool.request().query('SELECT 1 AS test');
-    res.status(200).json({
-      success: true,
-      result: result.recordset
-    });
+    res.json({ success: true, result: result.recordset });
   } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 

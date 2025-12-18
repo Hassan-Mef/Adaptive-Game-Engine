@@ -1,9 +1,9 @@
-const {poolPromise , sql } = require('../config/db');
+const { sql } = require('../config/db');
+const { executeSP } = require('../services/db.service');
 
 exports.recordAttempt = async (req, res) => {
   const { playerId, score, accuracy, timeTaken } = req.body;
 
-    // Basic validation
   if (
     playerId === undefined ||
     score === undefined ||
@@ -17,19 +17,16 @@ exports.recordAttempt = async (req, res) => {
   }
 
   try {
-    const pool = await poolPromise;
-
-    const result = await pool
-      .request()
-      .input('PlayerID', sql.Int, playerId)
-      .input('Score', sql.Int, score)
-      .input('Accuracy', sql.Float, accuracy)
-      .input('TimeTaken', sql.Float, timeTaken)
-      .execute('sp_RecordAttempt');
+    const result = await executeSP('sp_RecordAttempt', {
+      PlayerID: { type: sql.Int, value: playerId },
+      Score: { type: sql.Int, value: score },
+      Accuracy: { type: sql.Float, value: accuracy },
+      TimeTaken: { type: sql.Float, value: timeTaken }
+    });
 
     res.status(200).json({
       success: true,
-      difficulty: result.recordset[0]
+      difficulty: result[0]
     });
 
   } catch (err) {
