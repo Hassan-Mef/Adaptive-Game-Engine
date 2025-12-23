@@ -1,4 +1,4 @@
-import { useEffect, useRef , useState} from "react";
+import { useEffect, useRef, useState } from "react";
 import { PointerLockControls, PositionalAudio } from "@react-three/drei";
 import * as THREE from "three";
 import { useThree, useLoader } from "@react-three/fiber";
@@ -8,13 +8,21 @@ import Gun from "../components/Gun/Gun";
 import ImpactParticles from "../components/ImpactParticles";
 import usePlayer from "../hooks/usePlayer";
 import { LevelLayout } from "../components/Environment/index";
+import useGameLoop from "../hooks/useGameLoop";
 
 
+export default function AimTrainingScene({ onStatsUpdate }) {
 
-export default function AimTrainingScene() {
   const { camera } = useThree();
-  const scoreRef = useRef(0);
+  // const scoreRef = useRef(0);
   const [particles, setParticles] = useState([]);
+
+  const game = useGameLoop({
+    duration: 20,
+    onFinish: (stats) => {
+      console.log("GAME FINISHED", stats);
+    },
+  });
 
   // gun sfx
   const gunshotSound = useRef();
@@ -45,41 +53,83 @@ export default function AimTrainingScene() {
     }
   }, [audioBuffer, camera]);
 
-  let soundIndex = 0;
+
+  useEffect(() => {
+  onStatsUpdate?.({
+    timeLeft: game.timeLeft,
+    ...game.getStats(),
+  });
+}, [game.timeLeft]);
+
+
+  const soundIndex = useRef(0);
+
+  // const handleShoot = () => {
+  //   if (gunSounds.current.length) {
+  //     gunSounds.current[soundIndex].stop();
+  //     gunSounds.current[soundIndex].play();
+  //     console.log("Testing: Playing sound", soundIndex);
+  //     soundIndex = (soundIndex + 1) % POOL_SIZE;
+  //   }
+
+  //   Gun.shoot(); // trigger gun flash
+
+  //   const raycaster = new THREE.Raycaster();
+  //   const cameraDirection = new THREE.Vector3();
+  //   camera.getWorldDirection(cameraDirection);
+  //   cameraDirection.normalize();
+
+  //   raycaster.set(camera.position, cameraDirection);
+
+  //   targetRefs.forEach((targetRef) => {
+  //     const hits = raycaster.intersectObject(targetRef.current.getMesh());
+  //     if (hits.length > 0) {
+  //       console.log("Hit!");
+  //       scoreRef.current += 1;
+  //       console.log("Score:", scoreRef.current);
+
+  //       // Trigger particle effect
+  //       handleHit(hits[0].point);
+
+  //       targetRef.current.respawn();
+  //     }
+  //   });
+  // };
 
   const handleShoot = () => {
+    console.log(game.isRunning.current);
+    if (!game.isRunning.current) return;
+
+    game.recordShot();
+
     if (gunSounds.current.length) {
-      gunSounds.current[soundIndex].stop();
-      gunSounds.current[soundIndex].play();
-      console.log("Testing: Playing sound", soundIndex);
-      soundIndex = (soundIndex + 1) % POOL_SIZE;
+      gunSounds.current[soundIndex.current].stop();
+      gunSounds.current[soundIndex.current].play();
+      soundIndex.current = (soundIndex.current + 1) % POOL_SIZE;
     }
 
-    Gun.shoot(); // trigger gun flash
+    Gun.shoot();
 
     const raycaster = new THREE.Raycaster();
     const cameraDirection = new THREE.Vector3();
     camera.getWorldDirection(cameraDirection);
     cameraDirection.normalize();
-
     raycaster.set(camera.position, cameraDirection);
 
     targetRefs.forEach((targetRef) => {
       const hits = raycaster.intersectObject(targetRef.current.getMesh());
+
       if (hits.length > 0) {
-        console.log("Hit!");
-        scoreRef.current += 1;
-        console.log("Score:", scoreRef.current);
-
-        // Trigger particle effect
+        game.recordHit(); // ✅ HERE
         handleHit(hits[0].point);
-
         targetRef.current.respawn();
       }
     });
   };
 
   useEffect(() => {
+    game.start(); // session must be  running first
+
     window.addEventListener("mousedown", handleShoot);
     return () => {
       window.removeEventListener("mousedown", handleShoot);
@@ -118,9 +168,9 @@ export default function AimTrainingScene() {
       <ambientLight intensity={0.4} />
 
       {/* <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[50, 50]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh> */}
+          <planeGeometry args={[50, 50]} />
+          <meshStandardMaterial color="#ffffff" />
+        </mesh> */}
       <LevelLayout />
 
       <Gun />
