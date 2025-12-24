@@ -10,9 +10,7 @@ import usePlayer from "../hooks/usePlayer";
 import { LevelLayout } from "../components/Environment/index";
 import useGameLoop from "../hooks/useGameLoop";
 
-
 export default function AimTrainingScene({ onStatsUpdate }) {
-
   const { camera } = useThree();
   // const scoreRef = useRef(0);
   const [particles, setParticles] = useState([]);
@@ -53,14 +51,12 @@ export default function AimTrainingScene({ onStatsUpdate }) {
     }
   }, [audioBuffer, camera]);
 
-
   useEffect(() => {
-  onStatsUpdate?.({
-    timeLeft: game.timeLeft,
-    ...game.getStats(),
-  });
-}, [game.timeLeft]);
-
+    onStatsUpdate?.({
+      timeLeft: game.timeLeft,
+      ...game.getStats(),
+    });
+  }, [game.timeLeft]);
 
   const soundIndex = useRef(0);
 
@@ -126,15 +122,18 @@ export default function AimTrainingScene({ onStatsUpdate }) {
       }
     });
   };
-
+  // start game ONCE
   useEffect(() => {
-    game.start(); // session must be  running first
+    game.start();
+  }, []);
+
+  // handle shooting lifecycle
+  useEffect(() => {
+    if (!game.isRunning.current) return;
 
     window.addEventListener("mousedown", handleShoot);
-    return () => {
-      window.removeEventListener("mousedown", handleShoot);
-    };
-  }, []);
+    return () => window.removeEventListener("mousedown", handleShoot);
+  }, [game.timeLeft]); // timeLeft changes → effect re-evaluates
 
   usePlayer();
   return (
@@ -176,11 +175,23 @@ export default function AimTrainingScene({ onStatsUpdate }) {
       <Gun />
 
       {/* Cube targets */}
-      <Target ref={targetRefs[0]} position={[0, 2, -10]} />
-      <Target ref={targetRefs[1]} position={[-2, 3, -8]} />
-      <Target ref={targetRefs[2]} position={[2, 1.5, -12]} />
+      <Target
+        ref={targetRefs[0]}
+        position={[0, 2, -10]}
+        isRunning={game.isRunning.current}
+      />
+      <Target
+        ref={targetRefs[1]}
+        position={[-2, 3, -8]}
+        isRunning={game.isRunning.current}
+      />
+      <Target
+        ref={targetRefs[2]}
+        position={[2, 1.5, -12]}
+        isRunning={game.isRunning.current}
+      />
 
-      {particles.map((p) => (
+      {/* {particles.map((p) => (
         <ImpactParticles
           key={p.id}
           position={p.position}
@@ -190,7 +201,7 @@ export default function AimTrainingScene({ onStatsUpdate }) {
             )
           }
         />
-      ))}
+      ))} */}
 
       <PointerLockControls />
     </>

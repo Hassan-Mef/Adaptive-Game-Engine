@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 
 export default function useGameLoop({ duration = 20, onFinish }) {
   const [timeLeft, setTimeLeft] = useState(duration);
-
-  // 🔥 REAL-TIME FLAGS MUST BE REFS
   const isRunningRef = useRef(false);
 
   const statsRef = useRef({
@@ -13,7 +11,6 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     startTime: null,
   });
 
-  // Timer loop (UI-only)
   useEffect(() => {
     if (!isRunningRef.current) return;
 
@@ -39,23 +36,23 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     };
 
     setTimeLeft(duration);
-    isRunningRef.current = true; // ✅ synchronous
+    isRunningRef.current = true;
   };
 
   const recordShot = () => {
     if (!isRunningRef.current) return;
-    statsRef.current.shotsFired += 1;
+    statsRef.current.shotsFired++;
   };
 
   const recordHit = () => {
     if (!isRunningRef.current) return;
-    statsRef.current.shotsHit += 1;
+    statsRef.current.shotsHit++;
     statsRef.current.score += 10;
   };
 
   return {
-    timeLeft,                 // for UI
-    isRunning: isRunningRef,  //  ref, not state
+    timeLeft,
+    isRunning: isRunningRef,
     start,
     recordShot,
     recordHit,

@@ -1,4 +1,4 @@
-export default function GameHUD({ timeLeft, shots, hits, score }) {
+export default function GameHUD({ timeLeft, shots, hits, score, onRestart  }) {
   return (
     <div
       style={{
@@ -13,10 +13,16 @@ export default function GameHUD({ timeLeft, shots, hits, score }) {
         borderRadius: "6px",
       }}
     >
-      <div>Time: {timeLeft}s</div>
-      <div>Shots Fired: {shots}</div>
+      <div>Time: {timeLeft}</div>
+      <div>Shots: {shots}</div>
       <div>Hits: {hits}</div>
       <div>Score: {score}</div>
+
+      {timeLeft === 0 && (
+        <button onClick={onRestart}>
+          Restart
+        </button>
+      )}
     </div>
   );
 }
