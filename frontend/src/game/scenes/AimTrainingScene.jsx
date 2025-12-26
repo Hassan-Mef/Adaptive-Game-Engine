@@ -10,6 +10,7 @@ import usePlayer from "../hooks/usePlayer";
 import { LevelLayout } from "../components/Environment/index";
 import useGameLoop from "../hooks/useGameLoop";
 import { GAME_PHASE } from "../systems/gamePhases";
+import TargetSpawner from "../components/TargetSpawner";
 
 export default function AimTrainingScene({ onStatsUpdate }) {
   const { camera } = useThree();
@@ -25,11 +26,11 @@ export default function AimTrainingScene({ onStatsUpdate }) {
     },
   });
 
+  const difficulty = game.difficulty.current;
+
   // gun sfx
   const gunshotSound = useRef();
   const audioBuffer = useLoader(THREE.AudioLoader, "/Gun/Gun_shot.mp3");
-
-  const targetRefs = [useRef(), useRef(), useRef()];
 
   const gunSounds = useRef([]);
   const POOL_SIZE = 5;
@@ -67,8 +68,7 @@ export default function AimTrainingScene({ onStatsUpdate }) {
     console.log(game.isRunning.current);
     //console.log(game.phase.current); // "CALIBRATION" | "LIVE" | "END"
 
-
-    if (!game.isRunning.current ) return;
+    if (!game.isRunning.current) return;
 
     game.recordShot();
 
@@ -86,15 +86,7 @@ export default function AimTrainingScene({ onStatsUpdate }) {
     cameraDirection.normalize();
     raycaster.set(camera.position, cameraDirection);
 
-    targetRefs.forEach((targetRef) => {
-      const hits = raycaster.intersectObject(targetRef.current.getMesh());
-
-      if (hits.length > 0) {
-        game.recordHit(); // ✅ HERE
-        handleHit(hits[0].point);
-        targetRef.current.respawn();
-      }
-    });
+    window.__CHECK_HITS__?.();
   };
   // start game ONCE
   useEffect(() => {
@@ -148,21 +140,17 @@ export default function AimTrainingScene({ onStatsUpdate }) {
 
       <Gun />
 
-      {/* Cube targets */}
-      <Target
-        ref={targetRefs[0]}
-        position={[0, 2, -10]}
+      <TargetSpawner
+        difficulty={game.difficulty.current}
         isRunning={game.isRunning.current}
-      />
-      <Target
-        ref={targetRefs[1]}
-        position={[-2, 3, -8]}
-        isRunning={game.isRunning.current}
-      />
-      <Target
-        ref={targetRefs[2]}
-        position={[2, 1.5, -12]}
-        isRunning={game.isRunning.current}
+        camera={camera}
+        onHit={(point) => {
+          game.recordHit();
+          setParticles((prev) => [
+            ...prev,
+            { position: point, id: Date.now() },
+          ]);
+        }}
       />
 
       {/* {particles.map((p) => (

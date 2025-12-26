@@ -1,23 +1,32 @@
-import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 
-const Target = forwardRef(({ position, isRunning }, ref) => {
+const Target = forwardRef(({ position, config }, ref) => {
+  if (!config) return null;
+
   const meshRef = useRef();
 
-  useImperativeHandle(ref, () => ({
-    respawn: () => {
-      if (!isRunning) return;
+  useEffect(() => {
+    if (!config.move) return;
 
-      const randomX = (Math.random() - 0.5) * 6;
-      const randomY = Math.random() * 2 + 2;
-      const randomZ = -(Math.random() * 7 + 5);
-      meshRef.current.position.set(randomX, randomY, randomZ);
-    },
-    getMesh: () => meshRef.current,
-  }));
+    let dir = 1;
+    const id = setInterval(() => {
+      if (!meshRef.current) return;
+      meshRef.current.position.x += 0.05 * dir;
+      if (Math.abs(meshRef.current.position.x) > 3) dir *= -1;
+    }, 50);
+
+    return () => clearInterval(id);
+  }, [config]);
 
   return (
-    <mesh ref={meshRef} position={position}>
-      <boxGeometry args={[1, 1, 1]} />
+    <mesh
+      ref={(m) => {
+        meshRef.current = m;
+        if (ref) ref(m);
+      }}
+      position={position}
+    >
+      <boxGeometry args={[config.size, config.size, config.size]} />
       <meshStandardMaterial color="red" />
     </mesh>
   );
