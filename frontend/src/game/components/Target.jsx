@@ -1,31 +1,33 @@
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef , useEffect ,useRef , useImperativeHandle,} from "react";
+import { useFrame } from "@react-three/fiber";
 
 const Target = forwardRef(({ position, config }, ref) => {
   if (!config) return null;
 
   const meshRef = useRef();
+  const offset = useRef(Math.random() * Math.PI * 2);
 
+  useImperativeHandle(ref, () => meshRef.current);
+
+  // set initial spawn position
   useEffect(() => {
-    if (!config.move) return;
+    if (meshRef.current) {
+      meshRef.current.position.set(...position);
+    }
+  }, [position]);
 
-    let dir = 1;
-    const id = setInterval(() => {
-      if (!meshRef.current) return;
-      meshRef.current.position.x += 0.05 * dir;
-      if (Math.abs(meshRef.current.position.x) > 3) dir *= -1;
-    }, 50);
+  // ✅ ONLY useFrame movement
+  useFrame((state) => {
+    if (!config.move || !meshRef.current) return;
 
-    return () => clearInterval(id);
-  }, [config]);
+    const t = state.clock.getElapsedTime() + offset.current;
+
+    meshRef.current.position.x += Math.sin(t) * 0.005;
+    meshRef.current.position.y += Math.cos(t * 0.8) * 0.003;
+  });
 
   return (
-    <mesh
-      ref={(m) => {
-        meshRef.current = m;
-        if (ref) ref(m);
-      }}
-      position={position}
-    >
+    <mesh ref={meshRef}>
       <boxGeometry args={[config.size, config.size, config.size]} />
       <meshStandardMaterial color="red" />
     </mesh>

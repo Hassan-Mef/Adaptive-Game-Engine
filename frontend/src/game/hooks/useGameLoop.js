@@ -31,7 +31,7 @@ export default function useGameLoop({ duration = 20, onFinish }) {
         statsRef.current.shotsHit = 0;
         statsRef.current.score = 0;
 
-        setTimeLeft(60); // LIVE duration
+        setTimeLeft(20); // LIVE duration
         return;
       }
 
@@ -81,6 +81,11 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     statsRef.current.score += 10;
   };
 
+  const onMiss = () => {
+    if (!isRunningRef.current) return;
+    statsRef.current.score -= 10;
+  };
+
   return {
     timeLeft,
     isRunning: isRunningRef,
@@ -90,6 +95,7 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     start,
     recordShot,
     recordHit,
+    onMiss,
     getStats: () => statsRef.current,
   };
 }

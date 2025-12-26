@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { PointerLockControls, PositionalAudio } from "@react-three/drei";
 import * as THREE from "three";
 import { useThree, useLoader } from "@react-three/fiber";
-import Target from "../components/Target";
 import { Sky } from "@react-three/drei";
 import Gun from "../components/Gun/Gun";
 import ImpactParticles from "../components/ImpactParticles";
@@ -95,7 +94,10 @@ export default function AimTrainingScene({ onStatsUpdate }) {
 
   // handle shooting lifecycle
   useEffect(() => {
-    if (!game.isRunning.current) return;
+    if (!game.isRunning.current) {
+      console.log(game.difficulty.current);
+      return;
+    }
 
     window.addEventListener("mousedown", handleShoot);
     return () => window.removeEventListener("mousedown", handleShoot);
@@ -150,6 +152,10 @@ export default function AimTrainingScene({ onStatsUpdate }) {
             ...prev,
             { position: point, id: Date.now() },
           ]);
+        }}
+        onMiss={() => {
+          game.onMiss();
+          // future: penalties, reaction stats
         }}
       />
 

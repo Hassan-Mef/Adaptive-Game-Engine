@@ -27,7 +27,7 @@ export function evaluateDifficulty(stats, duration = 20) {
   const shotsPerSecond = shotsHit / duration;
 
   // HARD check
-  if (accuracy > 0.6 && shotsPerSecond > 2.5) {
+  if (accuracy > 0.1 && shotsPerSecond > 0.5) {
     return {
       tier: DIFFICULTY.HARD,
       accuracy,
