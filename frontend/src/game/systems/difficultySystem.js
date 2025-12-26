@@ -91,3 +91,27 @@ export function getDifficultyProfile(tier) {
       };
   }
 }
+
+
+export function enforceDifficulty(stats) {
+  const { accuracy, shotsPerSecond } = stats;
+
+  if (accuracy < 0.30 || shotsPerSecond < 1.2) {
+    return "EASY";
+  }
+
+  if (
+    accuracy >= 0.30 &&
+    accuracy <= 0.60 &&
+    shotsPerSecond >= 1.2 &&
+    shotsPerSecond <= 2.5
+  ) {
+    return "MEDIUM";
+  }
+
+  if (accuracy > 0.60 && shotsPerSecond > 2.5) {
+    return "HARD";
+  }
+
+  return "MEDIUM";
+}

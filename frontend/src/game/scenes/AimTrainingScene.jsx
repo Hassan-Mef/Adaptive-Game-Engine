@@ -10,6 +10,7 @@ import { LevelLayout } from "../components/Environment/index";
 import useGameLoop from "../hooks/useGameLoop";
 import { GAME_PHASE } from "../systems/gamePhases";
 import TargetSpawner from "../components/TargetSpawner";
+import { evaluateDifficulty } from "../systems/difficultySystem";
 
 export default function AimTrainingScene({ onStatsUpdate }) {
   const { camera } = useThree();
@@ -22,6 +23,9 @@ export default function AimTrainingScene({ onStatsUpdate }) {
     duration: 20, // calibration duration only
     onFinish: (stats) => {
       console.log("FINAL GAME RESULT", stats);
+      const result = evaluateDifficulty(stats, 20);
+      console.log("EVALUATED DIFFICULTY:", result);
+      //game.setDifficulty(result.tier);
     },
   });
 
@@ -85,7 +89,11 @@ export default function AimTrainingScene({ onStatsUpdate }) {
     cameraDirection.normalize();
     raycaster.set(camera.position, cameraDirection);
 
-    window.__CHECK_HITS__?.();
+    const hit = window.__CHECK_HITS__?.();
+
+    if (!hit) {
+      game.onMiss();
+    }
   };
   // start game ONCE
   useEffect(() => {

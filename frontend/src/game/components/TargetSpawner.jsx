@@ -79,43 +79,43 @@ export default function TargetSpawner({
 
   /* ---------- HIT CHECK ---------- */
   const checkHits = () => {
-    if (!camera) return;
+  if (!camera) return false;
 
-    const raycaster = new THREE.Raycaster();
-    const dir = new THREE.Vector3();
+  const raycaster = new THREE.Raycaster();
+  const dir = new THREE.Vector3();
+  camera.getWorldDirection(dir);
+  raycaster.set(camera.position, dir);
 
-    camera.getWorldDirection(dir);
-    raycaster.set(camera.position, dir);
+  let hitSomething = false;
 
-    targetRefs.current.forEach((mesh, i) => {
-      if (!mesh) return;
+  targetRefs.current.forEach((mesh) => {
+    if (!mesh || hitSomething) return;
 
-      const hits = raycaster.intersectObject(mesh);
-      if (hits.length > 0) {
-        onHit?.(hits[0].point);
+    const hits = raycaster.intersectObject(mesh);
+    if (hits.length > 0) {
+      hitSomething = true;
 
-        setTargets((prev) =>
-          prev.map((t, idx) =>
-            idx === i
-              ? {
-                  ...t,
-                  position: randomPosition(),
-                  spawnedAt: Date.now(),
-                }
-              : t
-          )
-        );
-      }
-    });
-  };
+      onHit?.(hits[0].point);
+      mesh.position.set(...randomPosition());
+    }
+  });
+
+  return hitSomething;
+};
+
 
   /* ---------- EXPOSE SHOOT ---------- */
-  useEffect(() => {
-    if (!isRunning) return;
+useEffect(() => {
+  if (!isRunning) return;
 
-    window.__CHECK_HITS__ = checkHits;
-    return () => delete window.__CHECK_HITS__;
-  }, [isRunning, difficulty, camera]);
+  window.__CHECK_HITS__ = checkHits;
+
+  return () => {
+    if (window.__CHECK_HITS__ === checkHits) {
+      delete window.__CHECK_HITS__;
+    }
+  };
+}, [isRunning, difficulty, camera]);
 
   return (
     <>
