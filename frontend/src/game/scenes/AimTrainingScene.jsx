@@ -9,16 +9,19 @@ import ImpactParticles from "../components/ImpactParticles";
 import usePlayer from "../hooks/usePlayer";
 import { LevelLayout } from "../components/Environment/index";
 import useGameLoop from "../hooks/useGameLoop";
+import { GAME_PHASE } from "../systems/gamePhases";
 
 export default function AimTrainingScene({ onStatsUpdate }) {
   const { camera } = useThree();
   // const scoreRef = useRef(0);
   const [particles, setParticles] = useState([]);
 
+  // game Phase
+
   const game = useGameLoop({
-    duration: 20,
+    duration: 20, // calibration duration only
     onFinish: (stats) => {
-      console.log("GAME FINISHED", stats);
+      console.log("FINAL GAME RESULT", stats);
     },
   });
 
@@ -60,41 +63,12 @@ export default function AimTrainingScene({ onStatsUpdate }) {
 
   const soundIndex = useRef(0);
 
-  // const handleShoot = () => {
-  //   if (gunSounds.current.length) {
-  //     gunSounds.current[soundIndex].stop();
-  //     gunSounds.current[soundIndex].play();
-  //     console.log("Testing: Playing sound", soundIndex);
-  //     soundIndex = (soundIndex + 1) % POOL_SIZE;
-  //   }
-
-  //   Gun.shoot(); // trigger gun flash
-
-  //   const raycaster = new THREE.Raycaster();
-  //   const cameraDirection = new THREE.Vector3();
-  //   camera.getWorldDirection(cameraDirection);
-  //   cameraDirection.normalize();
-
-  //   raycaster.set(camera.position, cameraDirection);
-
-  //   targetRefs.forEach((targetRef) => {
-  //     const hits = raycaster.intersectObject(targetRef.current.getMesh());
-  //     if (hits.length > 0) {
-  //       console.log("Hit!");
-  //       scoreRef.current += 1;
-  //       console.log("Score:", scoreRef.current);
-
-  //       // Trigger particle effect
-  //       handleHit(hits[0].point);
-
-  //       targetRef.current.respawn();
-  //     }
-  //   });
-  // };
-
   const handleShoot = () => {
     console.log(game.isRunning.current);
-    if (!game.isRunning.current) return;
+    //console.log(game.phase.current); // "CALIBRATION" | "LIVE" | "END"
+
+
+    if (!game.isRunning.current ) return;
 
     game.recordShot();
 

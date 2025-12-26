@@ -1,0 +1,5 @@
+export const GAME_PHASE = {
+  CALIBRATION: "CALIBRATION",
+  LIVE: "LIVE",
+  ENDED: "ENDED",
+};

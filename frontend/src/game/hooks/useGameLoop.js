@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { evaluateDifficulty } from "../systems/difficultySystem";
 
 export default function useGameLoop({ duration = 20, onFinish }) {
   const [timeLeft, setTimeLeft] = useState(duration);
   const isRunningRef = useRef(false);
+
+  const phaseRef = useRef("IDLE");
+  const difficultyRef = useRef(null);
 
   const statsRef = useRef({
     shotsFired: 0,
@@ -15,8 +19,32 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     if (!isRunningRef.current) return;
 
     if (timeLeft <= 0) {
-      isRunningRef.current = false;
-      onFinish?.(statsRef.current);
+      // --- Calibration finished ---
+      if (phaseRef.current === "CALIBRATION") {
+        const result = evaluateDifficulty(statsRef.current, duration);
+
+        difficultyRef.current = result;
+        phaseRef.current = "LIVE";
+
+        // reset for live round
+        statsRef.current.shotsFired = 0;
+        statsRef.current.shotsHit = 0;
+        statsRef.current.score = 0;
+
+        setTimeLeft(60); // LIVE duration
+        return;
+      }
+
+      // --- Live round finished ---
+      if (phaseRef.current === "LIVE") {
+        isRunningRef.current = false;
+        phaseRef.current = "END";
+        onFinish?.({
+          ...statsRef.current,
+          difficulty: difficultyRef.current,
+        });
+      }
+
       return;
     }
 
@@ -34,6 +62,9 @@ export default function useGameLoop({ duration = 20, onFinish }) {
       score: 0,
       startTime: Date.now(),
     };
+
+    phaseRef.current = "CALIBRATION";
+    difficultyRef.current = null;
 
     setTimeLeft(duration);
     isRunningRef.current = true;
@@ -53,6 +84,9 @@ export default function useGameLoop({ duration = 20, onFinish }) {
   return {
     timeLeft,
     isRunning: isRunningRef,
+    phase: phaseRef,
+    difficulty: difficultyRef,
+
     start,
     recordShot,
     recordHit,
