@@ -55,7 +55,7 @@ export default function usePlayer() {
     // - gravity
 
     // 1. apply gravity to velocity.y
-    //velocity.current.y -= GRAVITY * delta;
+    // velocity.current.y -= GRAVITY * delta;
 
     // 2. Move the camera by vertical velocity
     camera.position.y += velocity.current.y * delta;

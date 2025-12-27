@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { evaluateDifficulty } from "../systems/difficultySystem";
 import { evaluateLiveDifficulty } from "../systems/LiveDifficultyEvalutor";
+import { evaluateAchievements } from "../systems/achievementSystem";
 
 export default function useGameLoop({ duration = 20, onFinish }) {
   const [timeLeft, setTimeLeft] = useState(duration);
@@ -10,6 +11,7 @@ export default function useGameLoop({ duration = 20, onFinish }) {
   const difficultyRef = useRef(null);
   const calibrationStatsRef = useRef(null);
   const lastLiveStatsRef = useRef(null);
+  const livesCompletedRef = useRef(0);
 
   const statsRef = useRef({
     shotsFired: 0,
@@ -85,16 +87,45 @@ export default function useGameLoop({ duration = 20, onFinish }) {
         console.log("[LIVE-EVAL] Stats:", liveStats);
         console.log("[LIVE-EVAL] Previous difficulty:", difficultyRef.current);
 
-        isRunningRef.current = false;
-        phaseRef.current = "END";
+        livesCompletedRef.current += 1;
+        phaseRef.current = "LIVE";
+
+        statsRef.current = {
+          shotsFired: 0,
+          shotsHit: 0,
+          score: 0,
+          reactionTimes: [],
+          startTime: Date.now(),
+        };
+        console.log(
+          `[CHAIN] Starting Live #${livesCompletedRef.current + 1}`,
+          difficultyRef.current
+        );
+
+        setTimeLeft(20);
+
+        if (livesCompletedRef.current >= 5) {
+          phaseRef.current = "END";
+          isRunningRef.current = false;
+        }
 
         onFinish?.({
           ...liveStats,
           difficulty: difficultyRef.current,
           promoted: updatedDifficulty.promoted,
+          livesCompleted: livesCompletedRef.current,
         });
 
         console.log("[LIVE-EVAL] Updated difficulty:", updatedDifficulty);
+
+        const achievements = evaluateAchievements({
+          liveStats,
+          difficulty: difficultyRef.current,
+          promoted: updatedDifficulty.promoted,
+          livesCompleted: livesCompletedRef.current,
+        });
+
+        console.log("[ACHIEVEMENTS]", achievements);
       }
 
       return;
