@@ -108,6 +108,42 @@ HARD:
 ```
 
 
+## Architectural Flow 
+
+```bash
+AimTrainingScene
+ └── useGameLoop
+       ├── statsRef (shots, hits, reactionTimes)
+       ├── timer & phase
+       └── exposes recordShot / recordHit / recordReaction
+ └── TargetSpawner
+       ├── owns target lifecycle
+       ├── computes reaction time
+       └── reports hit/miss UP
+ └── difficultySystem
+       ├── pure evaluation
+       └── no side effects
+```
+
+
+
+## New Adaptive system Chnage 
+
+### First Time Users
+
+```
+HOME → CALIBRATION → evaluateDifficulty → LIVE (Easy / Medium / Hard)
+
+```
+
+### After Live Round Ends
+
+```
+evaluateLiveDifficulty
+↓
+Easy → Easy+ → Easy++ → Medium → Medium+ → Hard
+
+```
 
 
 

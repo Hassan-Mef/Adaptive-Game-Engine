@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { evaluateDifficulty } from "../systems/difficultySystem";
+import { evaluateLiveDifficulty } from "../systems/LiveDifficultyEvalutor";
 
 export default function useGameLoop({ duration = 20, onFinish }) {
   const [timeLeft, setTimeLeft] = useState(duration);
@@ -7,12 +8,15 @@ export default function useGameLoop({ duration = 20, onFinish }) {
 
   const phaseRef = useRef("IDLE");
   const difficultyRef = useRef(null);
+  const calibrationStatsRef = useRef(null);
+  const lastLiveStatsRef = useRef(null);
 
   const statsRef = useRef({
     shotsFired: 0,
     shotsHit: 0,
     score: 0,
     startTime: null,
+    reactionTimes: [], // NEW: store reaction times
   });
 
   useEffect(() => {
@@ -21,28 +25,76 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     if (timeLeft <= 0) {
       // --- Calibration finished ---
       if (phaseRef.current === "CALIBRATION") {
-        const result = evaluateDifficulty(statsRef.current, duration);
+        // lock calibration stats
+        calibrationStatsRef.current = {
+          ...statsRef.current,
+          reactionTimes: [...statsRef.current.reactionTimes],
+        };
+
+        const result = evaluateDifficulty(
+          calibrationStatsRef.current,
+          duration
+        );
 
         difficultyRef.current = result;
+        console.log("[PHASE] Calibration finished");
+        console.log("[DIFFICULTY] Initial difficulty:", result);
+
+        // ➜ move to LIVE
         phaseRef.current = "LIVE";
 
-        // reset for live round
-        statsRef.current.shotsFired = 0;
-        statsRef.current.shotsHit = 0;
-        statsRef.current.score = 0;
+        console.log("[PHASE] Entered LIVE round");
 
-        setTimeLeft(20); // LIVE duration
+        // reset ONLY live stats
+        statsRef.current = {
+          shotsFired: 0,
+          shotsHit: 0,
+          score: 0,
+          reactionTimes: [],
+          startTime: Date.now(),
+        };
+
+        setTimeLeft(20);
         return;
       }
 
       // --- Live round finished ---
       if (phaseRef.current === "LIVE") {
+        const liveStats = {
+          ...statsRef.current,
+          duration,
+        };
+
+        const baselineStats =
+          lastLiveStatsRef.current ?? calibrationStatsRef.current;
+
+        const updatedDifficulty = evaluateLiveDifficulty(
+          difficultyRef.current,
+          liveStats,
+          baselineStats
+        );
+
+        difficultyRef.current = {
+          tier: updatedDifficulty.tier,
+          subLevel: updatedDifficulty.subLevel,
+        };
+
+        lastLiveStatsRef.current = liveStats;
+
+        console.log("[PHASE] Live round finished");
+        console.log("[LIVE-EVAL] Stats:", liveStats);
+        console.log("[LIVE-EVAL] Previous difficulty:", difficultyRef.current);
+
         isRunningRef.current = false;
         phaseRef.current = "END";
+
         onFinish?.({
-          ...statsRef.current,
+          ...liveStats,
           difficulty: difficultyRef.current,
+          promoted: updatedDifficulty.promoted,
         });
+
+        console.log("[LIVE-EVAL] Updated difficulty:", updatedDifficulty);
       }
 
       return;
@@ -61,7 +113,10 @@ export default function useGameLoop({ duration = 20, onFinish }) {
       shotsHit: 0,
       score: 0,
       startTime: Date.now(),
+      reactionTimes: [],
     };
+
+    console.log("[GAME] Started → CALIBRATION");
 
     phaseRef.current = "CALIBRATION";
     difficultyRef.current = null;
@@ -86,6 +141,14 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     statsRef.current.score -= 10;
   };
 
+  const recordReaction = (reactionTime) => {
+    if (!statsRef.current.reactionTimes) {
+      statsRef.current.reactionTimes = [];
+    }
+
+    statsRef.current.reactionTimes.push(reactionTime);
+  };
+
   return {
     timeLeft,
     isRunning: isRunningRef,
@@ -96,6 +159,8 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     recordShot,
     recordHit,
     onMiss,
+    recordReaction,
+    getCalibrationStats: () => calibrationStatsRef.current,
     getStats: () => statsRef.current,
   };
 }

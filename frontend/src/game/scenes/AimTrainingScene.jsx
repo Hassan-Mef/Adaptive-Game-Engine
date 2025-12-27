@@ -21,11 +21,10 @@ export default function AimTrainingScene({ onStatsUpdate }) {
 
   const game = useGameLoop({
     duration: 20, // calibration duration only
-    onFinish: (stats) => {
-      console.log("FINAL GAME RESULT", stats);
-      const result = evaluateDifficulty(stats, 20);
-      console.log("EVALUATED DIFFICULTY:", result);
-      //game.setDifficulty(result.tier);
+    onFinish: () => {
+      console.log("CALIBRATION STATS:", game.getCalibrationStats());
+      console.log("LIVE STATS:", game.getStats());
+      console.log("FINAL DIFFICULTY:", game.difficulty.current);
     },
   });
 
@@ -103,13 +102,29 @@ export default function AimTrainingScene({ onStatsUpdate }) {
   // handle shooting lifecycle
   useEffect(() => {
     if (!game.isRunning.current) {
-      console.log(game.difficulty.current);
+      //console.log(game.difficulty.current);
       return;
     }
 
     window.addEventListener("mousedown", handleShoot);
     return () => window.removeEventListener("mousedown", handleShoot);
   }, [game.timeLeft]); // timeLeft changes → effect re-evaluates
+
+  useEffect(() => {
+    const stats = game.getStats();
+    const times = stats.reactionTimes || [];
+
+    const avgReaction =
+      times.length > 0
+        ? Math.round(times.reduce((a, b) => a + b, 0) / times.length)
+        : null;
+
+    onStatsUpdate?.({
+      timeLeft: game.timeLeft,
+      ...stats,
+      avgReaction,
+    });
+  }, [game.timeLeft]);
 
   usePlayer();
   return (
@@ -154,12 +169,10 @@ export default function AimTrainingScene({ onStatsUpdate }) {
         difficulty={game.difficulty.current}
         isRunning={game.isRunning.current}
         camera={camera}
-        onHit={(point) => {
+        onHit={(point, reactionTime) => {
           game.recordHit();
-          setParticles((prev) => [
-            ...prev,
-            { position: point, id: Date.now() },
-          ]);
+          game.recordReaction(reactionTime);
+          handleHit(point);
         }}
         onMiss={() => {
           game.onMiss();

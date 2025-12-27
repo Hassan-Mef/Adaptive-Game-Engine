@@ -12,48 +12,22 @@ export const DIFFICULTY = {
  * @param {number} duration - calibration duration in seconds
  */
 export function evaluateDifficulty(stats, duration = 20) {
-  const { shotsFired, shotsHit } = stats;
+  const accuracy =
+    stats.shotsHit / Math.max(stats.shotsFired, 1);
 
-  // Safety guards
-  if (shotsFired === 0) {
-    return {
-      tier: DIFFICULTY.EASY,
-      accuracy: 0,
-      shotsPerSecond: 0,
-    };
-  }
+  const shotsPerSecond = stats.shotsHit / duration;
+  const reactionMedian = median(stats.reactionTimes || []);
 
-  const accuracy = shotsHit / shotsFired;
-  const shotsPerSecond = shotsHit / duration;
+  const tier = enforceDifficulty({ accuracy, shotsPerSecond });
+  let subLevel = 0;
+  console.log(" logs from evaluateDifficulty to verify subLevel initialization ", subLevel);
 
-  // HARD check
-  if (accuracy > 0.1 && shotsPerSecond > 0.5) {
-    return {
-      tier: DIFFICULTY.HARD,
-      accuracy,
-      shotsPerSecond,
-    };
-  }
-
-  // MEDIUM check
-  if (
-    accuracy >= 0.3 &&
-    accuracy <= 0.6 &&
-    shotsPerSecond >= 1.2 &&
-    shotsPerSecond <= 2.5
-  ) {
-    return {
-      tier: DIFFICULTY.MEDIUM,
-      accuracy,
-      shotsPerSecond,
-    };
-  }
-
-  // EASY fallback
   return {
-    tier: DIFFICULTY.EASY,
+    tier,
+    subLevel,
     accuracy,
     shotsPerSecond,
+    reactionMedian,
   };
 }
 
@@ -92,26 +66,32 @@ export function getDifficultyProfile(tier) {
   }
 }
 
-
 export function enforceDifficulty(stats) {
   const { accuracy, shotsPerSecond } = stats;
 
-  if (accuracy < 0.30 || shotsPerSecond < 1.2) {
+  if (accuracy < 0.3 || shotsPerSecond < 1.2) {
     return "EASY";
   }
 
   if (
-    accuracy >= 0.30 &&
-    accuracy <= 0.60 &&
+    accuracy >= 0.3 &&
+    accuracy <= 0.6 &&
     shotsPerSecond >= 1.2 &&
     shotsPerSecond <= 2.5
   ) {
     return "MEDIUM";
   }
 
-  if (accuracy > 0.60 && shotsPerSecond > 2.5) {
+  if (accuracy > 0.6 && shotsPerSecond > 2.5) {
     return "HARD";
   }
 
   return "MEDIUM";
+}
+
+function median(values) {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }

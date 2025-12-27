@@ -33,7 +33,26 @@ export default function TargetSpawner({
   const [targets, setTargets] = useState([]);
   const targetRefs = useRef([]);
 
-  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.EASY;
+  const tier = difficulty?.tier ?? "EASY";
+  const subLevel = difficulty?.subLevel ?? 0;
+
+  const baseConfig = DIFFICULTY_CONFIG[tier];
+
+  // 🎯 apply soft difficulty
+  const config = {
+    ...baseConfig,
+
+    // smaller targets as subLevel increases
+    size: Math.max(0.4, baseConfig.size - subLevel * 0.05),
+
+    // faster despawn as subLevel increases
+    despawnTime: baseConfig.despawnTime
+      ? Math.max(800, baseConfig.despawnTime - subLevel * 250)
+      : null,
+
+    // slowly increase target count
+    count: Math.min(10, baseConfig.count + Math.floor(subLevel / 2)),
+  };
 
   /* ---------- SPAWN ---------- */
   useEffect(() => {
@@ -45,13 +64,18 @@ export default function TargetSpawner({
 
     const now = Date.now();
     const spawned = Array.from({ length: config.count }).map((_, i) => ({
-      id: `${difficulty}-${i}-${now}`,
+      id: `${tier}-${i}-${now}`,
       position: randomPosition(),
       spawnedAt: now,
     }));
 
     setTargets(spawned);
-  }, [difficulty, isRunning]);
+    console.log(
+      "[SPAWNER]",
+      `Spawned ${config.count} targets | Tier=${tier} | Sub=${subLevel}`,
+      config
+    );
+  }, [tier, subLevel, isRunning]);
 
   /* ---------- DESPAWN / RESPAWN ---------- */
   useEffect(() => {
@@ -75,54 +99,67 @@ export default function TargetSpawner({
     }, 200);
 
     return () => clearInterval(interval);
-  }, [difficulty, isRunning]);
+  }, [tier, subLevel, isRunning]);
 
   /* ---------- HIT CHECK ---------- */
   const checkHits = () => {
-  if (!camera) return false;
+    if (!camera) return false;
 
-  const raycaster = new THREE.Raycaster();
-  const dir = new THREE.Vector3();
-  camera.getWorldDirection(dir);
-  raycaster.set(camera.position, dir);
+    const raycaster = new THREE.Raycaster();
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    raycaster.set(camera.position, dir);
 
-  let hitSomething = false;
+    const now = Date.now();
+    let hitSomething = false;
 
-  targetRefs.current.forEach((mesh) => {
-    if (!mesh || hitSomething) return;
+    targetRefs.current.forEach((mesh) => {
+      if (!mesh || hitSomething) return;
 
-    const hits = raycaster.intersectObject(mesh);
-    if (hits.length > 0) {
-      hitSomething = true;
+      const hits = raycaster.intersectObject(mesh);
+      if (hits.length > 0) {
+        hitSomething = true;
 
-      onHit?.(hits[0].point);
-      mesh.position.set(...randomPosition());
-    }
-  });
+        const spawnedAt = mesh.userData.spawnedAt;
+        if (!spawnedAt) return;
 
-  return hitSomething;
-};
+        const reactionTime = now - spawnedAt;
 
+        onHit?.(hits[0].point, reactionTime);
+
+        // respawn visually
+        mesh.userData.spawnedAt = now;
+        mesh.position.set(...randomPosition());
+      }
+    });
+
+    return hitSomething;
+  };
 
   /* ---------- EXPOSE SHOOT ---------- */
-useEffect(() => {
-  if (!isRunning) return;
+  useEffect(() => {
+    if (!isRunning) return;
 
-  window.__CHECK_HITS__ = checkHits;
+    window.__CHECK_HITS__ = checkHits;
 
-  return () => {
-    if (window.__CHECK_HITS__ === checkHits) {
-      delete window.__CHECK_HITS__;
-    }
-  };
-}, [isRunning, difficulty, camera]);
+    return () => {
+      if (window.__CHECK_HITS__ === checkHits) {
+        delete window.__CHECK_HITS__;
+      }
+    };
+  }, [isRunning, tier, camera]);
 
   return (
     <>
       {targets.map((t, i) => (
         <Target
           key={t.id}
-          ref={(el) => (targetRefs.current[i] = el)}
+          ref={(el) => {
+            if (el) {
+              el.userData.spawnedAt = t.spawnedAt;
+              targetRefs.current[i] = el;
+            }
+          }}
           position={t.position}
           config={config}
         />
