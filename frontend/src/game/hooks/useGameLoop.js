@@ -10,6 +10,7 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
   const MAX_LIVE_ROUNDS = 5;
 
   const phaseRef = useRef("IDLE");
+  // "IDLE" | "CALIBRATION" | "LIVE" | "ROUND_END" \ "SESSION_END"
   const difficultyRef = useRef(null);
   const calibrationStatsRef = useRef(null);
   const lastLiveStatsRef = useRef(null);
@@ -65,7 +66,6 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
 
       // --- Live round finished ---
       if (phaseRef.current === "LIVE") {
-
         livesCompletedRef.current += 1;
 
         const liveStats = { ...statsRef.current, duration };
@@ -177,12 +177,16 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
 
   const resumeNextRound = () => {
     if (livesCompletedRef.current >= MAX_LIVE_ROUNDS) {
-      console.log("[SESSION] All live rounds completed");
+      phaseRef.current = "SESSION_END";
+      isRunningRef.current = false;
+
       onFinish?.({
         calibration: calibrationStatsRef.current,
-        rounds: livesCompletedRef.current,
+        rounds: allRoundsRef.current,
         finalDifficulty: difficultyRef.current,
       });
+
+      console.log("[SESSION] Completed");
       return;
     }
 

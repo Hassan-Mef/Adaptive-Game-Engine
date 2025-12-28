@@ -30,14 +30,14 @@ export default function AimTrainingScene({
       console.log("LIVE STATS:", game.getStats());
       console.log("FINAL DIFFICULTY:", game.difficulty.current);
     },
-    onRoundEnd, // ✅ THIS WAS MISSING
+    onRoundEnd, // THIS WAS MISSING
   });
 
   useEffect(() => {
     onGameReady?.({
       getEvents: game.getEvents,
       clearEvents: game.clearEvents,
-      resumeNextRound: game.resumeNextRound
+      resumeNextRound: game.resumeNextRound,
     });
   }, []);
 
@@ -204,8 +204,14 @@ export default function AimTrainingScene({
           }
         />
       ))} */}
-
-      <PointerLockControls />
+      <PointerLockControls
+        // enabled={
+        //   game.phase.current === "CALIBRATION" || game.phase.current === "LIVE"
+        // }
+        enabled= {game.isRunning.current}
+        onUnlock={() => console.log("[POINTER] Unlocked")}
+        onLock={() => console.log("[POINTER] Locked")}
+      />
     </>
   );
 }
