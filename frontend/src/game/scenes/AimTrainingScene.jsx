@@ -12,7 +12,11 @@ import { GAME_PHASE } from "../systems/gamePhases";
 import TargetSpawner from "../components/TargetSpawner";
 import { evaluateDifficulty } from "../systems/difficultySystem";
 
-export default function AimTrainingScene({ onStatsUpdate }) {
+export default function AimTrainingScene({
+  onStatsUpdate,
+  onGameReady,
+  onRoundEnd,
+}) {
   const { camera } = useThree();
   // const scoreRef = useRef(0);
   const [particles, setParticles] = useState([]);
@@ -20,13 +24,22 @@ export default function AimTrainingScene({ onStatsUpdate }) {
   // game Phase
 
   const game = useGameLoop({
-    duration: 20, // calibration duration only
+    duration: 20,
     onFinish: () => {
       console.log("CALIBRATION STATS:", game.getCalibrationStats());
       console.log("LIVE STATS:", game.getStats());
       console.log("FINAL DIFFICULTY:", game.difficulty.current);
     },
+    onRoundEnd, // ✅ THIS WAS MISSING
   });
+
+  useEffect(() => {
+    onGameReady?.({
+      getEvents: game.getEvents,
+      clearEvents: game.clearEvents,
+      resumeNextRound: game.resumeNextRound
+    });
+  }, []);
 
   const difficulty = game.difficulty.current;
 

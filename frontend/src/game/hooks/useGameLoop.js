@@ -3,9 +3,11 @@ import { evaluateDifficulty } from "../systems/difficultySystem";
 import { evaluateLiveDifficulty } from "../systems/LiveDifficultyEvalutor";
 import { evaluateAchievements } from "../systems/achievementSystem";
 
-export default function useGameLoop({ duration = 20, onFinish }) {
+export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
   const [timeLeft, setTimeLeft] = useState(duration);
   const isRunningRef = useRef(false);
+
+  const MAX_LIVE_ROUNDS = 5;
 
   const phaseRef = useRef("IDLE");
   const difficultyRef = useRef(null);
@@ -13,12 +15,14 @@ export default function useGameLoop({ duration = 20, onFinish }) {
   const lastLiveStatsRef = useRef(null);
   const livesCompletedRef = useRef(0);
 
+  const eventsRef = useRef([]);
+
   const statsRef = useRef({
     shotsFired: 0,
     shotsHit: 0,
     score: 0,
     startTime: null,
-    reactionTimes: [], // NEW: store reaction times
+    reactionTimes: [],
   });
 
   useEffect(() => {
@@ -27,7 +31,6 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     if (timeLeft <= 0) {
       // --- Calibration finished ---
       if (phaseRef.current === "CALIBRATION") {
-        // lock calibration stats
         calibrationStatsRef.current = {
           ...statsRef.current,
           reactionTimes: [...statsRef.current.reactionTimes],
@@ -42,12 +45,12 @@ export default function useGameLoop({ duration = 20, onFinish }) {
         console.log("[PHASE] Calibration finished");
         console.log("[DIFFICULTY] Initial difficulty:", result);
 
-        // ➜ move to LIVE
-        phaseRef.current = "LIVE";
+        pushEvent({ type: "PHASE", label: "Calibration Complete" });
+        pushEvent({ type: "DIFFICULTY", label: `Starting ${result.tier}` });
 
+        phaseRef.current = "LIVE";
         console.log("[PHASE] Entered LIVE round");
 
-        // reset ONLY live stats
         statsRef.current = {
           shotsFired: 0,
           shotsHit: 0,
@@ -62,13 +65,15 @@ export default function useGameLoop({ duration = 20, onFinish }) {
 
       // --- Live round finished ---
       if (phaseRef.current === "LIVE") {
-        const liveStats = {
-          ...statsRef.current,
-          duration,
-        };
+
+        livesCompletedRef.current += 1;
+
+        const liveStats = { ...statsRef.current, duration };
 
         const baselineStats =
           lastLiveStatsRef.current ?? calibrationStatsRef.current;
+
+        const prevDifficulty = difficultyRef.current;
 
         const updatedDifficulty = evaluateLiveDifficulty(
           difficultyRef.current,
@@ -81,54 +86,38 @@ export default function useGameLoop({ duration = 20, onFinish }) {
           subLevel: updatedDifficulty.subLevel,
         };
 
+        if (updatedDifficulty.promoted) {
+          pushEvent({
+            type: "PROMOTION",
+            label: `Promoted to ${updatedDifficulty.tier}`,
+          });
+        } else if (updatedDifficulty.subLevel > prevDifficulty.subLevel) {
+          pushEvent({
+            type: "SUBLEVEL",
+            label: `${updatedDifficulty.tier} +${updatedDifficulty.subLevel}`,
+          });
+        }
+
+        pushEvent({
+          type: "STATUS",
+          label: `Difficulty: ${difficultyRef.current.tier} +${difficultyRef.current.subLevel}`,
+        });
+
         lastLiveStatsRef.current = liveStats;
 
         console.log("[PHASE] Live round finished");
-        console.log("[LIVE-EVAL] Stats:", liveStats);
-        console.log("[LIVE-EVAL] Previous difficulty:", difficultyRef.current);
 
-        livesCompletedRef.current += 1;
-        phaseRef.current = "LIVE";
-
-        statsRef.current = {
-          shotsFired: 0,
-          shotsHit: 0,
-          score: 0,
-          reactionTimes: [],
-          startTime: Date.now(),
-        };
-        console.log(
-          `[CHAIN] Starting Live #${livesCompletedRef.current + 1}`,
-          difficultyRef.current
-        );
-
-        setTimeLeft(20);
-
-        if (livesCompletedRef.current >= 5) {
-          phaseRef.current = "END";
-          isRunningRef.current = false;
-        }
-
-        onFinish?.({
-          ...liveStats,
-          difficulty: difficultyRef.current,
-          promoted: updatedDifficulty.promoted,
-          livesCompleted: livesCompletedRef.current,
-        });
-
-        console.log("[LIVE-EVAL] Updated difficulty:", updatedDifficulty);
-
-        const achievements = evaluateAchievements({
+        onRoundEnd?.({
+          round: livesCompletedRef.current,
           liveStats,
           difficulty: difficultyRef.current,
           promoted: updatedDifficulty.promoted,
-          livesCompleted: livesCompletedRef.current,
+          events: [...eventsRef.current],
         });
 
-        console.log("[ACHIEVEMENTS]", achievements);
+        isRunningRef.current = false;
+        return;
       }
-
-      return;
     }
 
     const timer = setTimeout(() => {
@@ -152,6 +141,8 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     phaseRef.current = "CALIBRATION";
     difficultyRef.current = null;
 
+    pushEvent({ type: "PHASE", label: "Calibration Started" });
+
     setTimeLeft(duration);
     isRunningRef.current = true;
   };
@@ -173,11 +164,50 @@ export default function useGameLoop({ duration = 20, onFinish }) {
   };
 
   const recordReaction = (reactionTime) => {
-    if (!statsRef.current.reactionTimes) {
-      statsRef.current.reactionTimes = [];
+    statsRef.current.reactionTimes.push(reactionTime);
+  };
+
+  const pushEvent = (event) => {
+    eventsRef.current.push({
+      id: Date.now() + Math.random(),
+      timestamp: Date.now(),
+      ...event,
+    });
+  };
+
+  const resumeNextRound = () => {
+    if (livesCompletedRef.current >= MAX_LIVE_ROUNDS) {
+      console.log("[SESSION] All live rounds completed");
+      onFinish?.({
+        calibration: calibrationStatsRef.current,
+        rounds: livesCompletedRef.current,
+        finalDifficulty: difficultyRef.current,
+      });
+      return;
     }
 
-    statsRef.current.reactionTimes.push(reactionTime);
+    eventsRef.current = [];
+
+    statsRef.current = {
+      shotsFired: 0,
+      shotsHit: 0,
+      score: 0,
+      reactionTimes: [],
+      startTime: Date.now(),
+    };
+
+    livesCompletedRef.current += 1;
+
+    phaseRef.current = "LIVE";
+    isRunningRef.current = true;
+    setTimeLeft(20);
+
+    pushEvent({
+      type: "ROUND",
+      label: `Live Round ${livesCompletedRef.current}`,
+    });
+
+    console.log(`[RESUME] Starting live round ${livesCompletedRef.current}`);
   };
 
   return {
@@ -191,7 +221,12 @@ export default function useGameLoop({ duration = 20, onFinish }) {
     recordHit,
     onMiss,
     recordReaction,
+    resumeNextRound,
+
     getCalibrationStats: () => calibrationStatsRef.current,
     getStats: () => statsRef.current,
+
+    getEvents: () => eventsRef.current,
+    clearEvents: () => (eventsRef.current = []),
   };
 }
