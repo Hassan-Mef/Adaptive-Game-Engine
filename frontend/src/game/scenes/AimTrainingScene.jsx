@@ -16,6 +16,7 @@ export default function AimTrainingScene({
   onStatsUpdate,
   onGameReady,
   onRoundEnd,
+  onSessionFinish,
 }) {
   const { camera } = useThree();
   // const scoreRef = useRef(0);
@@ -24,12 +25,17 @@ export default function AimTrainingScene({
   // game Phase
 
   const game = useGameLoop({
-    duration: 20,
-    onFinish: () => {
-      console.log("CALIBRATION STATS:", game.getCalibrationStats());
-      console.log("LIVE STATS:", game.getStats());
-      console.log("FINAL DIFFICULTY:", game.difficulty.current);
-    },
+    duration: 5,
+    // onFinish: () => {
+    //   console.log("CALIBRATION STATS:", game.getCalibrationStats());
+    //   console.log("LIVE STATS:", game.getStats());
+    //   console.log("FINAL DIFFICULTY:", game.difficulty.current);
+    // },
+    // onFinish: (session) => {
+    //   console.log("FINAL SESSION OBJECT", session);
+    //   onSessionFinish?.(session);
+    // },
+    onFinish: onSessionFinish,
     onRoundEnd, // THIS WAS MISSING
   });
 
@@ -139,6 +145,17 @@ export default function AimTrainingScene({
     });
   }, [game.timeLeft]);
 
+ useEffect(() => {
+  if (game.phase.current === "SESSION_END" && !game.isRunning.current) {
+    onSessionFinish?.({
+      calibration: game.getCalibrationStats(),
+      rounds: game.getRounds(), // <-- use the proper getter
+      finalDifficulty: game.difficulty.current,
+    });
+  }
+}, [game.isRunning.current]);
+
+
   usePlayer();
   return (
     <>
@@ -208,9 +225,9 @@ export default function AimTrainingScene({
         // enabled={
         //   game.phase.current === "CALIBRATION" || game.phase.current === "LIVE"
         // }
-        enabled= {game.isRunning.current}
-        onUnlock={() => console.log("[POINTER] Unlocked")}
-        onLock={() => console.log("[POINTER] Locked")}
+        enabled={game.isRunning.current}
+        // onUnlock={() => console.log("[POINTER] Unlocked")}
+        // onLock={() => console.log("[POINTER] Locked")}
       />
     </>
   );
