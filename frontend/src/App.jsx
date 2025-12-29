@@ -1,11 +1,113 @@
+import { useState, useEffect } from "react";
 import Crosshair from "./game/components/Crosshair";
 import GameCanvas from "./game/GameCanvas";
+import GameHUD from "./ui/GameHUD";
+import HomeMenu from "./ui/HomeMenu";
+import GameOverlay from "./ui/GameOverlay";
+import RoundSummary from "./ui/RoundSummary";
+import SessionSummary from "./ui/SessionSummary";
 
 export default function App() {
+  const [stats, setStats] = useState(null);
+  const [roundKey, setRoundKey] = useState(0);
+  const [screen, setScreen] = useState("HOME");
+  const [uiMode, setUiMode] = useState("HOME");
+
+  // Keep difficulty across sessions
+  const [persistentDifficulty, setPersistentDifficulty] = useState(null);
+
+  const [overlayApi, setOverlayApi] = useState(null);
+  const [roundSummary, setRoundSummary] = useState(null);
+  const [sessionSummary, setSessionSummary] = useState(null);
+
+  const handleSessionFinish = (session) => {
+    if (!session || !session.rounds || session.rounds.length === 0) return;
+    
+    console.log("[APP] Session finished. Final Difficulty:", session.finalDifficulty);
+    setPersistentDifficulty(session.finalDifficulty);
+    setSessionSummary(session);
+    setUiMode("SESSION_SUMMARY");
+  };
+
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <GameCanvas />
-      <Crosshair/>
+    <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden", background: "#000" }}>
+
+      {/* GAME LAYER: Stays mounted during SESSION_SUMMARY to prevent WebGL crash */}
+      {screen === "GAME" && (
+        <>
+          <GameCanvas
+            key={roundKey}
+            onStatsUpdate={setStats}
+            initialDifficulty={persistentDifficulty}
+            onGameReady={setOverlayApi}
+            onRoundEnd={(data) => {
+              setRoundSummary(data);
+              setUiMode("ROUND_SUMMARY");
+            }}
+            onSessionFinish={handleSessionFinish}
+          />
+          <Crosshair />
+          {stats && (
+            <GameHUD
+              timeLeft={stats.timeLeft}
+              shots={stats.shotsFired}
+              hits={stats.shotsHit}
+              score={stats.score}
+            />
+          )}
+          {overlayApi && (
+            <GameOverlay
+              getEvents={overlayApi.getEvents}
+              clearEvents={overlayApi.clearEvents}
+            />
+          )}
+        </>
+      )}
+
+      {/* UI OVERLAY LAYER */}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zSelf: 10 }}>
+        <div style={{ pointerEvents: "auto", width: "100%", height: "100%" }}>
+          
+          {screen === "HOME" && uiMode === "HOME" && (
+            <HomeMenu
+              onStart={() => {
+                setStats(null);
+                setPersistentDifficulty(null); // Fresh start from Home
+                setRoundKey((k) => k + 1);
+                setScreen("GAME");
+                setUiMode("GAME");
+              }}
+            />
+          )}
+
+          {uiMode === "ROUND_SUMMARY" && (
+            <RoundSummary
+              data={roundSummary}
+              onContinue={() => {
+                overlayApi?.resumeNextRound();
+                setRoundSummary(null);
+                setUiMode("GAME");
+              }}
+            />
+          )}
+
+          {uiMode === "SESSION_SUMMARY" && (
+            <SessionSummary
+              data={sessionSummary}
+              onRestart={() => {
+                setUiMode("GAME");
+                setRoundKey((k) => k + 1); // Trigger remount with persistentDifficulty
+              }}
+              onExit={() => {
+                setSessionSummary(null);
+                setPersistentDifficulty(null);
+                setUiMode("HOME");
+                setScreen("HOME");
+              }}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

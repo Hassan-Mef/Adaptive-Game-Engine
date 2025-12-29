@@ -1,42 +1,51 @@
-import { useEffect, useRef , useState} from "react";
-import { PointerLockControls, PositionalAudio } from "@react-three/drei";
+import { useEffect, useRef, useState } from "react";
+import { PointerLockControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useThree, useLoader } from "@react-three/fiber";
-import Target from "../components/Target";
 import { Sky } from "@react-three/drei";
 import Gun from "../components/Gun/Gun";
-import ImpactParticles from "../components/ImpactParticles";
 import usePlayer from "../hooks/usePlayer";
 import { LevelLayout } from "../components/Environment/index";
+import useGameLoop from "../hooks/useGameLoop";
+import TargetSpawner from "../components/TargetSpawner";
 
-
-
-export default function AimTrainingScene() {
+export default function AimTrainingScene({
+  onStatsUpdate,
+  onGameReady,
+  onRoundEnd,
+  initialDifficulty,
+  onSessionFinish,
+}) {
   const { camera } = useThree();
-  const scoreRef = useRef(0);
   const [particles, setParticles] = useState([]);
 
-  // gun sfx
-  const gunshotSound = useRef();
+  const game = useGameLoop({
+    duration: 5,
+    onFinish: onSessionFinish,
+    onRoundEnd,
+  });
+
+  // INITIALIZE GAME ON MOUNT
+  useEffect(() => {
+    onGameReady?.({
+      getEvents: game.getEvents,
+      clearEvents: game.clearEvents,
+      resumeNextRound: game.resumeNextRound,
+    });
+
+    // Start with the difficulty passed from App
+    game.start(initialDifficulty);
+  }, []);
+
+  // AUDIO POOLING
   const audioBuffer = useLoader(THREE.AudioLoader, "/Gun/Gun_shot.mp3");
-
-  const targetRefs = [useRef(), useRef(), useRef()];
-
   const gunSounds = useRef([]);
+  const soundIndex = useRef(0);
   const POOL_SIZE = 5;
-
-  const handleHit = (hitPosition) => {
-    // Add new particle burst
-    setParticles((prev) => [
-      ...prev,
-      { position: hitPosition, id: Date.now() },
-    ]);
-  };
 
   useEffect(() => {
     const listener = new THREE.AudioListener();
     camera.add(listener);
-
     for (let i = 0; i < POOL_SIZE; i++) {
       const sound = new THREE.Audio(listener);
       sound.setBuffer(audioBuffer);
@@ -45,104 +54,61 @@ export default function AimTrainingScene() {
     }
   }, [audioBuffer, camera]);
 
-  let soundIndex = 0;
-
   const handleShoot = () => {
+    if (!game.isRunning) return; // Use state here
+
+    game.recordShot();
+
     if (gunSounds.current.length) {
-      gunSounds.current[soundIndex].stop();
-      gunSounds.current[soundIndex].play();
-      console.log("Testing: Playing sound", soundIndex);
-      soundIndex = (soundIndex + 1) % POOL_SIZE;
+      gunSounds.current[soundIndex.current].stop();
+      gunSounds.current[soundIndex.current].play();
+      soundIndex.current = (soundIndex.current + 1) % POOL_SIZE;
     }
 
-    Gun.shoot(); // trigger gun flash
-
-    const raycaster = new THREE.Raycaster();
-    const cameraDirection = new THREE.Vector3();
-    camera.getWorldDirection(cameraDirection);
-    cameraDirection.normalize();
-
-    raycaster.set(camera.position, cameraDirection);
-
-    targetRefs.forEach((targetRef) => {
-      const hits = raycaster.intersectObject(targetRef.current.getMesh());
-      if (hits.length > 0) {
-        console.log("Hit!");
-        scoreRef.current += 1;
-        console.log("Score:", scoreRef.current);
-
-        // Trigger particle effect
-        handleHit(hits[0].point);
-
-        targetRef.current.respawn();
-      }
-    });
+    Gun.shoot();
+    const hit = window.__CHECK_HITS__?.();
+    if (!hit) game.onMiss();
   };
 
   useEffect(() => {
+    if (!game.isRunning) return;
     window.addEventListener("mousedown", handleShoot);
-    return () => {
-      window.removeEventListener("mousedown", handleShoot);
-    };
-  }, []);
+    return () => window.removeEventListener("mousedown", handleShoot);
+  }, [game.isRunning]); // Depends on state
+
+  useEffect(() => {
+    const stats = game.getStats();
+    onStatsUpdate?.({
+      timeLeft: game.timeLeft,
+      ...stats,
+    });
+  }, [game.timeLeft, game.isRunning]);
 
   usePlayer();
+
   return (
     <>
-      <Sky
-        sunPosition={[10, 15, 20]}
-        turbidity={8}
-        rayleigh={2}
-        mieCoefficient={0.005}
-        mieDirectionalG={0.8}
-      />
-
+      <Sky sunPosition={[10, 15, 20]} turbidity={8} rayleigh={2} />
       <hemisphereLight
         intensity={0.6}
         skyColor={"#b1e1ff"}
         groundColor={"#444"}
       />
-      <directionalLight
-        castShadow
-        position={[10, 15, 10]}
-        intensity={1.8}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-near={1}
-        shadow-camera-far={50}
-        shadow-camera-left={-15}
-        shadow-camera-right={15}
-        shadow-camera-top={15}
-        shadow-camera-bottom={-15}
-      />
+      <directionalLight castShadow position={[10, 15, 10]} intensity={1.8} />
       <ambientLight intensity={0.4} />
-
-      {/* <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[50, 50]} />
-        <meshStandardMaterial color="#ffffff" />
-      </mesh> */}
       <LevelLayout />
-
       <Gun />
-
-      {/* Cube targets */}
-      <Target ref={targetRefs[0]} position={[0, 2, -10]} />
-      <Target ref={targetRefs[1]} position={[-2, 3, -8]} />
-      <Target ref={targetRefs[2]} position={[2, 1.5, -12]} />
-
-      {particles.map((p) => (
-        <ImpactParticles
-          key={p.id}
-          position={p.position}
-          onComplete={() =>
-            setParticles((prev) =>
-              prev.filter((particle) => particle.id !== p.id)
-            )
-          }
-        />
-      ))}
-
-      <PointerLockControls />
+      <TargetSpawner
+        difficulty={game.difficulty.current}
+        isRunning={game.isRunning}
+        camera={camera}
+        onHit={(point, reactionTime) => {
+          game.recordHit();
+          game.recordReaction(reactionTime);
+        }}
+        onMiss={() => game.onMiss()}
+      />
+      <PointerLockControls enabled={game.isRunning} />
     </>
   );
 }

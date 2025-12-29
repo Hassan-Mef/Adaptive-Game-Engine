@@ -1,23 +1,35 @@
-import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef , useEffect ,useRef , useImperativeHandle,} from "react";
+import { useFrame } from "@react-three/fiber";
 
-const Target = forwardRef(({ position }, ref) => {
+const Target = forwardRef(({ position, config }, ref) => {
+  if (!config) return null;
+
   const meshRef = useRef();
+  const offset = useRef(Math.random() * Math.PI * 2);
 
-  // Expose a method to move/respawn the target
-  useImperativeHandle(ref, () => ({
-    respawn: () => {
-      const randomX = (Math.random() - 0.5) * 6;  // -3 to +3
-      const randomY = Math.random() * 2 + 2;    // 1.5 to 3.5
-      const randomZ = -(Math.random() * 7 + 5);   // -5 to -12
-      meshRef.current.position.set(randomX, randomY, randomZ);
-    },
-    getMesh: () => meshRef.current
-  }));
+  useImperativeHandle(ref, () => meshRef.current);
+
+  // set initial spawn position
+  useEffect(() => {
+    if (meshRef.current) {
+      meshRef.current.position.set(...position);
+    }
+  }, [position]);
+
+  // ✅ ONLY useFrame movement
+  useFrame((state) => {
+    if (!config.move || !meshRef.current) return;
+
+    const t = state.clock.getElapsedTime() + offset.current;
+
+    meshRef.current.position.x += Math.sin(t) * 0.005;
+    meshRef.current.position.y += Math.cos(t * 0.8) * 0.003;
+  });
 
   return (
-    <mesh receiveShadow  ref={meshRef} position={position }>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="red" roughness={0.4} metalness={0.1} />
+    <mesh ref={meshRef}>
+      <boxGeometry args={[config.size, config.size, config.size]} />
+      <meshStandardMaterial color="red" />
     </mesh>
   );
 });
