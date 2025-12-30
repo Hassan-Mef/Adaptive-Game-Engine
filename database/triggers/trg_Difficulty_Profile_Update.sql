@@ -1,4 +1,4 @@
-CREATE TRIGGER trg_LogDifficultyAdjustment
+CREATE TRIGGER Difficulty_Profile_Update
 ON Difficulty_Profiles
 AFTER UPDATE
 AS
