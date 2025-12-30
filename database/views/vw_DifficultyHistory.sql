@@ -1,27 +1,18 @@
-CREATE VIEW vw_DifficultyHistory
-AS
+CREATE VIEW vw_DifficultyHistory AS
 SELECT
-    p.player_id,
+    a.player_id,
     p.username,
 
+    a.attempt_id,
+    a.start_time,
+    a.end_time,
+
+    dp.difficulty_score,
     l.level_name,
-    l.difficulty_rank,
+    l.difficulty_rank
 
-    COUNT(a.attempt_id) AS attempts_on_level,
-    AVG(a.score) AS avg_score_on_level,
-
-    MIN(a.timestamp) AS first_played,
-    MAX(a.timestamp) AS last_played
-
-FROM Players p
-JOIN Attempts a
-    ON p.player_id = a.player_id
-JOIN Levels l
-    ON a.level_id = l.level_id
-
-GROUP BY
-    p.player_id,
-    p.username,
-    l.level_name,
-    l.difficulty_rank;
+FROM Attempts a
+JOIN Players p ON a.player_id = p.player_id
+JOIN Difficulty_Profiles dp ON a.player_id = dp.player_id
+JOIN Levels l ON dp.recommended_level_id = l.level_id;
 GO
