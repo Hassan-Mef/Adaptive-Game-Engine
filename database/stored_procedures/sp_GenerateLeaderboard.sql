@@ -3,12 +3,22 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    INSERT INTO Leaderboard_Log (player_id, score, rank_position)
+    -- Clear old leaderboard data
+    DELETE FROM Leaderboard_Log;
+
+    INSERT INTO Leaderboard_Log (
+        player_id,
+        score,
+        rank_position
+    )
     SELECT
         player_id,
-        SUM(score) AS total_score,
-        RANK() OVER (ORDER BY SUM(score) DESC) AS rank_position
+        MAX(total_score) AS best_session_score,
+        RANK() OVER (
+            ORDER BY MAX(total_score) DESC
+        ) AS rank_position
     FROM Attempts
+    WHERE session_end IS NOT NULL
     GROUP BY player_id;
 END;
 GO

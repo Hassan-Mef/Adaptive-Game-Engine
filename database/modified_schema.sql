@@ -96,3 +96,46 @@ CREATE TABLE System_Log (
     performed_by VARCHAR(50),
     timestamp DATETIME DEFAULT GETDATE()
 );
+
+
+ALTER TABLE Attempts
+ADD
+    session_start DATETIME DEFAULT GETDATE(),
+    session_end DATETIME NULL,
+
+    -- Aggregated session stats
+    total_score INT NULL,
+    avg_accuracy FLOAT NULL,
+    total_shots_fired INT NULL,
+    total_shots_hit INT NULL,
+    avg_reaction_time FLOAT NULL,
+
+    -- Final difficulty outcome
+    final_difficulty_tier VARCHAR(10),   -- EASY / MEDIUM / HARD
+    final_difficulty_value FLOAT;        -- e.g. 2.3, 5.8, 9.1
+
+
+-- new core tables 
+CREATE TABLE Session_Rounds (
+    round_id INT IDENTITY PRIMARY KEY,
+    attempt_id INT NOT NULL,
+
+    round_index INT NOT NULL,          -- 1, 2, 3, ...
+    
+    -- Difficulty state DURING this round
+    difficulty_tier VARCHAR(10),       -- EASY / MEDIUM / HARD
+    difficulty_sublevel FLOAT,          -- +1, +2, continuous for HARD
+
+    -- Round performance
+    accuracy FLOAT,
+    shots_fired INT,
+    shots_hit INT,
+    avg_reaction_time FLOAT,
+    round_duration FLOAT,
+
+    created_at DATETIME DEFAULT GETDATE(),
+
+    FOREIGN KEY (attempt_id) REFERENCES Attempts(attempt_id),
+    CONSTRAINT uq_round UNIQUE (attempt_id, round_index)
+);
+

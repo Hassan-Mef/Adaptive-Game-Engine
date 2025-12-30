@@ -5,34 +5,51 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @AvgScore FLOAT;
-    DECLARE @AvgAccuracy FLOAT;
-    DECLARE @HitRatio FLOAT;
+    DECLARE
+        @AvgSessionScore FLOAT,
+        @AvgSessionAccuracy FLOAT,
+        @AvgReactionTime FLOAT,
+        @Consistency FLOAT;
 
+    /* -------------------------------
+       Session-level performance
+       ------------------------------- */
     SELECT
-        @AvgScore = AVG(CAST(score AS FLOAT)),
-        @AvgAccuracy = AVG(accuracy),
-        @HitRatio = AVG(
-            CASE 
-                WHEN shots_fired = 0 THEN 0 
-                ELSE CAST(shots_hit AS FLOAT) / shots_fired 
-            END
-        )
-    FROM Attempts
-    WHERE player_id = @PlayerID;
+        @AvgSessionScore = AVG(a.total_score),
+        @AvgSessionAccuracy = AVG(a.avg_accuracy)
+    FROM Attempts a
+    WHERE a.player_id = @PlayerID
+      AND a.session_end IS NOT NULL;
 
-    -- If no attempts exist
-    IF @AvgScore IS NULL
+    /* -------------------------------
+       Round-level behavior
+       (consistency & reaction time)
+       ------------------------------- */
+    SELECT
+        @AvgReactionTime = AVG(r.avg_reaction_time),
+        @Consistency = 100 - STDDEV(r.accuracy)
+    FROM Attempts a
+    JOIN Session_Rounds r
+        ON a.attempt_id = r.attempt_id
+    WHERE a.player_id = @PlayerID;
+
+    /* -------------------------------
+       No data → beginner
+       ------------------------------- */
+    IF @AvgSessionScore IS NULL
     BEGIN
         SET @DifficultyScore = 0;
         RETURN;
     END
 
-    -- Final difficulty score calculation
+    /* -------------------------------
+       Final weighted skill score
+       ------------------------------- */
     SET @DifficultyScore = CAST(
-        (@AvgScore * 0.5) +
-        (@AvgAccuracy * 30) +
-        (@HitRatio * 20)
+        (@AvgSessionScore * 0.4) +
+        (@AvgSessionAccuracy * 30) +
+        ((100 - ISNULL(@AvgReactionTime, 100)) * 0.2) +
+        (ISNULL(@Consistency, 0) * 0.1)
         AS INT
     );
 END;
