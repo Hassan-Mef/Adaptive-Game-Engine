@@ -1,17 +1,47 @@
-const { sql } = require('../config/db');
-const { executeSP } = require('../services/db.service');
+const bcrypt = require('bcrypt');
+const playerService = require('../services/player.service');
 
-exports.getPlayerById = async (req, res) => {
+const SALT_ROUNDS = 10;
+
+async function getPlayer(req, res) {
   const { id } = req.params;
+  try {
+    const player = await playerService.getPlayerById(id);
+    res.json({ success: true, data: player });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+async function createPlayer(req, res) {
+  const { username, email, password } = req.body;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({
+      success: false,
+      error: 'Username, email, and password are required'
+    });
+  }
 
   try {
-    const data = await executeSP('sp_GetPlayerById', {
-      PlayerID: { type: sql.Int, value: id }
-    });
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    res.status(200).json({
+    const result = await playerService.registerPlayer(
+      username,
+      email,
+      passwordHash
+    );
+
+    if (!result.new_player_id) {
+      return res.status(409).json({
+        success: false,
+        message: result.status_message
+      });
+    }
+
+    res.status(201).json({
       success: true,
-      data
+      playerId: result.new_player_id,
+      message: result.status_message
     });
 
   } catch (err) {
@@ -20,4 +50,8 @@ exports.getPlayerById = async (req, res) => {
       error: err.message
     });
   }
+}
+module.exports = {
+  getPlayer,
+  createPlayer
 };

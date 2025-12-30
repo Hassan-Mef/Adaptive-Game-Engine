@@ -1,34 +1,42 @@
 const sql = require('mssql');
 
-const config = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  server: process.env.DB_SERVER,
-  port: parseInt(process.env.DB_PORT),
-  options: {
-    encrypt: false,
-    trustServerCertificate: true
-  }
-};
+let pool;
 
-let poolPromise;
-
-async function connectDB() {
+/**
+ * Initialize a single MSSQL connection pool
+ */
+async function initDB() {
   try {
-    const pool = await sql.connect(config);
-    console.log('✅ Connected to MS SQL Server');
-    poolPromise = pool;
+    pool = new sql.ConnectionPool({
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      server: process.env.DB_SERVER,
+      database: process.env.DB_NAME,
+      port: Number(process.env.DB_PORT),
+      options: {
+        encrypt: false,
+        trustServerCertificate: true
+      }
+    });
+
+    await pool.connect();
+
+    console.log('✅ MSSQL pool connected');
   } catch (err) {
-    console.error('❌ DB connection failed:', err.message);
-    process.exit(1); // HARD FAIL (correct behavior)
+    console.error('❌ DB connection failed:', err);
+    process.exit(1);
   }
 }
 
-// connect immediately
-connectDB();
+function getPool() {
+  if (!pool) {
+    throw new Error('DB not initialized');
+  }
+  return pool;
+}
 
 module.exports = {
   sql,
-  getPool: () => poolPromise
+  initDB,
+  getPool
 };

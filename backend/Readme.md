@@ -48,9 +48,11 @@ backend/
 │   │   └── db.js           # MS SQL Server connection pool
 │   │
 │   ├── routes/
+│   │   ├── game.routers.js
 │   │   └── player.routes.js    # Player-related API routes
 │   │
 │   ├── controllers/
+│   │   ├── game.controller.js
 │   │   └── player.controller.js # Request handling & response logic
 │   │
 │   ├── services/           # (Planned) DB / stored procedure wrappers

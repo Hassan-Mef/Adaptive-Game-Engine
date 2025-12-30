@@ -1,38 +1,34 @@
-const { sql } = require('../config/db');
-const { executeSP } = require('../services/db.service');
+const gameService = require('../services/game.service');
 
-exports.recordAttempt = async (req, res) => {
-  const { playerId, score, accuracy, timeTaken } = req.body;
+async function startSession(req, res) {
+  const { playerId } = req.body;
 
-  if (
-    playerId === undefined ||
-    score === undefined ||
-    accuracy === undefined ||
-    timeTaken === undefined
-  ) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing required fields'
-    });
-  }
+  const session = await gameService.startGameSession(playerId);
 
+  res.json({
+    success: true,
+    sessionId: session.SessionID,
+  });
+}
+
+async function logRound(req, res) {
+  const { sessionId, shotsFired, hits, score, reactionTime, difficulty } = req.body;
   try {
-    const result = await executeSP('sp_RecordAttempt', {
-      PlayerID: { type: sql.Int, value: playerId },
-      Score: { type: sql.Int, value: score },
-      Accuracy: { type: sql.Float, value: accuracy },
-      TimeTaken: { type: sql.Float, value: timeTaken }
-    });
-
-    res.status(200).json({
-      success: true,
-      difficulty: result[0]
-    });
-
+    const result = await gameService.logRound(sessionId, { shotsFired, hits, score, reactionTime, difficulty });
+    res.json({ success: true, data: result });
   } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
+    res.status(500).json({ success: false, error: err.message });
   }
-};
+}
+
+async function endSession(req, res) {
+  const { sessionId } = req.body;
+  try {
+    const result = await gameService.endGameSession(sessionId);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+module.exports = { startSession, logRound, endSession };
