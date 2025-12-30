@@ -1,15 +1,17 @@
 export function evaluateAchievements({
-  liveStats,
-  difficulty,
-  promoted,
-  livesCompleted,
-}) {
+  liveStats = {},
+  difficulty = { tier: "UNKNOWN" },
+  promoted = false,
+  livesCompleted = 0,
+} = {}) {
   const achievements = [];
 
-  const accuracy =
-    liveStats.shotsHit / Math.max(liveStats.shotsFired, 1);
+  const shotsHit = liveStats.shotsHit ?? 0;
+  const shotsFired = liveStats.shotsFired ?? 0;
 
-  if (liveStats.shotsHit >= 20) {
+  const accuracy = shotsHit / Math.max(shotsFired, 1);
+
+  if (shotsHit >= 20) {
     achievements.push("Warmup Complete");
   }
 
