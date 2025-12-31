@@ -55,9 +55,29 @@ async function loginPlayer(username, password) {
   };
 }
 
+
+async function getPlayerStats(PlayerID) {
+  const result = await executeSP(
+    'sp_GetPlayerStats',
+    {
+      PlayerID: { type: sql.Int, value: PlayerID }
+    },
+    {
+      username: sql.VarChar(50),
+      TotalSessions: sql.Int,
+      AvgSessionScore: sql.Float,
+      AvgAccuracy: sql.Float,
+      AvgReactionTime: sql.Float
+    }
+  );
+
+  return result.output;
+}
+
 module.exports = {
   getPlayerById,
   registerPlayer,
-  loginPlayer   
+  loginPlayer,
+  getPlayerStats
 };
 

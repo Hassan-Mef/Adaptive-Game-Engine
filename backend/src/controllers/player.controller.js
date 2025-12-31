@@ -70,9 +70,38 @@ async function login(req, res) {
   }
 }
 
+/**
+ * Get player dashboard statistics
+ */
+async function getPlayerStats(req, res) {
+  const { id } = req.params;
+
+  try {
+    const stats = await playerService.getPlayerStats(id);
+
+    if (!stats) {
+      return res.status(404).json({
+        success: false,
+        error: 'Player stats not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+}
+  
 
 module.exports = {
   getPlayer,
   createPlayer,
-  login
+  login,
+  getPlayerStats
 };
