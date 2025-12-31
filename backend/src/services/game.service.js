@@ -76,10 +76,18 @@ async function getSessionEntryDifficulty(playerId) {
   return result.output;
 }
 
-module.exports = {
-  getSessionEntryDifficulty
-};
+/** Get session summary */
 
+async function getSessionSummary(attemptId) {
+  const result = await executeSP(
+    'sp_GetSessionSummary',
+    {
+      attempt_id: { type: sql.Int, value: attemptId }
+    }
+  );
+
+  return result.recordset[0];
+}
 
 
 
@@ -87,5 +95,6 @@ module.exports = {
   startGameSession,
   logSessionRound,
   endGameSession,
-  getSessionEntryDifficulty
+  getSessionEntryDifficulty,
+  getSessionSummary
 };

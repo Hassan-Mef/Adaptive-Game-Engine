@@ -70,10 +70,42 @@ async function getSessionEntryState(req, res) {
   }
 }
 
+/** 
+ * Get session summary
+ */
+
+
+async function getSessionSummary(req, res) {
+  try {
+    const { attemptId } = req.params;
+
+    const summary = await gameService.getSessionSummary(attemptId);
+
+    if (!summary) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: summary
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+}
+
+
 
 module.exports = {
   startSession,
   logRound,
   endSession,
   getSessionEntryState,
+  getSessionSummary
 };

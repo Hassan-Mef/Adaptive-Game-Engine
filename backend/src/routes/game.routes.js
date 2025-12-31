@@ -7,6 +7,9 @@ router.post('/log-round', gameController.logRound);
 router.post('/end', gameController.endSession);
 
 router.get('/session-entry/:playerId', gameController.getSessionEntryState);
+router.get('/session-summary/:attemptId', gameController.getSessionSummary);
+
+
 
 
 module.exports = router;
