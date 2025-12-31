@@ -1,7 +1,8 @@
 const gameService = require("../services/game.service");
 
 async function startSession(req, res) {
-  const { playerId } = req.body;
+  const playerId = req.user.playerId;
+
 
   const session = await gameService.startGameSession(playerId);
 
@@ -43,7 +44,7 @@ async function endSession(req, res) {
  */
 async function getSessionEntryState(req, res) {
   try {
-    const { playerId } = req.params;
+    const playerId  = req.user.playerId;
 
     if (!playerId) {
       return res.status(400).json({
