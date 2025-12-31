@@ -1,204 +1,255 @@
-# Backend – Adaptive Game Difficulty Engine
+# Backend – Adaptive Game Difficulty Engine (Final Architecture)
 
-This folder contains the **backend integration layer** of the *Adaptive Game Difficulty Engine* project. The backend acts as a bridge between the **React frontend** and the **MS SQL Server database**, exposing clean REST APIs and delegating all core logic to the database (via queries and stored procedures).
+This document describes the **final backend architecture** of the *Adaptive Game Difficulty Engine*.  
+It is intended as a **handover / onboarding document** for anyone working on or extending the backend.
 
----
-
-## 🎯 Purpose of the Backend
-
-The backend is responsible for:
-
-- Exposing REST APIs for the frontend
-- Managing communication with MS SQL Server
-- Calling **stored procedures** (business logic lives in DB)
-- Validating input and formatting responses
-- Keeping frontend completely **DB-agnostic**
-
-> ❗ The frontend **never** talks directly to the database.
+The backend is **feature-complete for the current frontend** and follows a clean, scalable, industry-style design.
 
 ---
 
-## 🧠 High-Level Architecture
+## 1. Purpose of the Backend
+
+The backend acts as a **secure integration layer** between:
+
+- A **React-based game frontend**
+- A **Microsoft SQL Server database**
+
+Its responsibilities are intentionally limited:
+
+- Expose REST APIs
+- Authenticate users (JWT)
+- Orchestrate game sessions
+- Call database **stored procedures**
+- Return clean JSON responses
+
+> **All business logic lives in the database.**  
+> The backend never re-implements game logic.
+
+---
+
+## 2. High-Level Architecture
 
 ```
 React Frontend
-      ↓ (HTTP / JSON)
-Express Backend (Node.js)
-      ↓ (Queries / Stored Procedures)
-MS SQL Server
+      ↓  (HTTP / JSON + JWT)
+Node.js / Express Backend
+      ↓  (Stored Procedures)
+Microsoft SQL Server
 ```
 
 ### Design Principles
-- **Separation of concerns**
-- **Thin backend** (logic in DB, not JS)
-- **Scalable folder structure**
-- **Industry-style Express architecture**
+
+- Thin backend
+- DB-driven logic
+- Stateless authentication (JWT)
+- Session-based game model
+- Clear separation of concerns
 
 ---
 
-## 📁 Backend Folder Structure
+## 3. Folder Structure
 
 ```
 backend/
 ├── src/
-│   ├── app.js              # Express app setup (middleware + routes)
-│   ├── server.js           # Server entry point
+│   ├── server.js               # Server entry point
+│   ├── app.js                  # Express app configuration
 │   │
 │   ├── config/
-│   │   └── db.js           # MS SQL Server connection pool
+│   │   └── db.js               # MSSQL connection pool
 │   │
 │   ├── routes/
-│   │   ├── game.routers.js
-│   │   └── player.routes.js    # Player-related API routes
+│   │   ├── player.routes.js    # Auth & player APIs
+│   │   └── game.routes.js      # Game session APIs
 │   │
 │   ├── controllers/
-│   │   ├── game.controller.js
-│   │   └── player.controller.js # Request handling & response logic
+│   │   ├── player.controller.js
+│   │   └── game.controller.js
 │   │
-│   ├── services/           # (Planned) DB / stored procedure wrappers
-│   └── middlewares/        # (Planned) auth, error handling, etc.
-│
-├── .env                    # Environment variables (not committed)
+│   ├── services/
+│   │   ├── db.service.js       # Stored procedure executor
+│   │   ├── player.service.js
+│   │   └── game.service.js
+│   │
+│   ├── middlewares/
+│   │   └── auth.middleware.js  # JWT authentication
+│   │
+├── .env                        # Environment variables (ignored)
 ├── package.json
 └── README.md
 ```
 
 ---
 
-## 🧩 File Responsibilities
+## 4. Authentication Model (JWT)
 
-### `server.js`
-- Entry point of the backend
-- Loads environment variables
-- Initializes database connection
-- Starts Express server
+### Why JWT?
 
-### `app.js`
-- Creates Express app instance
-- Registers middleware (CORS, JSON parsing)
-- Mounts all route modules
-- Defines base routes like `/health` and `/db-test`
+- Stateless
+- Secure
+- Scales easily
+- Removes need to pass `playerId` manually
 
-### `config/db.js`
-- Creates and exports a **single MSSQL connection pool**
-- Uses environment variables for configuration
-- Ensures DB connection is established once on startup
+### Flow
 
-### `routes/`
-- Defines API endpoints and URL structure
-- Maps routes to controllers
-- Example:
-  - `/api/player/:id`
+1. Player logs in using username + password
+2. Backend validates password using **bcrypt**
+3. Backend issues a **JWT**
+4. Frontend stores token
+5. Token is sent in:
+   ```
+   Authorization: Bearer <token>
+   ```
+6. Backend extracts `playerId` from token
 
-### `controllers/`
-- Handles incoming requests
-- Validates parameters
-- Calls DB layer (currently direct, later via services)
-- Sends formatted JSON responses
+### Auth Middleware
+
+```js
+req.user = { playerId }
+```
+
+This becomes the **single source of identity**.
 
 ---
 
-## 🔌 Database Connectivity
+## 5. Game Session Model
 
-- Database: **Local MS SQL Server**
-- Authentication: SQL Authentication
-- Connection handled using `mssql` Node package
+The backend models gameplay using **sessions (Attempts)**.
 
-### Test Endpoint
+### Lifecycle
 
-```
-GET /db-test
-```
+1. Session Entry (difficulty recommendation)
+2. Session Start
+3. Multiple Round Logs
+4. Session End
+5. Session Summary
 
-Returns:
-```json
-{
-  "success": true,
-  "result": [{ "test": 1 }]
-}
-```
-
-This confirms successful backend ↔ database connectivity.
+This mirrors how real games operate.
 
 ---
 
-## 🌐 API Endpoints (So Far)
+## 6. API Overview
 
-### Health Check
-```
-GET /health
-```
-Response:
-```json
-{ "status": "Backend is running 🚀" }
-```
+### Authentication / Player
 
----
+| Method | Endpoint | Description |
+|------|--------|-------------|
+| POST | `/api/player` | Register new player |
+| POST | `/api/player/login` | Login & receive JWT |
+| GET | `/api/player/:id` | Get player info |
+| GET | `/api/player/:id/stats` | Player dashboard stats |
 
-### Player API (Test)
-```
-GET /api/player/:id
-```
-Example:
-```
-GET /api/player/7
-```
-Response:
-```json
-{
-  "success": true,
-  "data": [{ "PlayerID": 7 }]
-}
-```
-
-> ⚠️ This currently uses a temporary query. It will be replaced by stored procedure calls.
+> Login & register **do not require JWT**.
 
 ---
 
-## 🔐 Environment Variables
+### Game APIs (JWT Protected)
 
-The backend uses a `.env` file with the following keys:
+| Method | Endpoint | Description |
+|------|--------|-------------|
+| GET | `/api/game/session-entry` | Recommended difficulty |
+| POST | `/api/game/start` | Start session |
+| POST | `/api/game/log-round` | Log round data |
+| POST | `/api/game/end` | End session |
+| GET | `/api/game/session-summary/:attemptId` | Session summary |
+
+---
+
+## 7. Session Entry vs Player Stats
+
+### Session Entry
+- Used **before starting a game**
+- Returns:
+  - Has history?
+  - Difficulty score
+  - Recommended level
+
+### Player Stats
+- Used for dashboards
+- Aggregates **all sessions**
+- Long-term performance view
+
+They solve **different problems** and are intentionally separate.
+
+---
+
+## 8. Database-Driven Logic
+
+All core logic is implemented via **stored procedures**:
+
+- Authentication lookup
+- Session creation
+- Round logging
+- Difficulty recommendation
+- Skill calculation
+- Session aggregation
+
+This ensures:
+- Consistency
+- Performance
+- Academic DBMS alignment
+
+---
+
+## 9. Environment Variables
 
 ```
 PORT=5000
+
 DB_USER=sa
 DB_PASSWORD=********
-DB_NAME=AdaptiveGameDB
+DB_NAME=GameDB
 DB_SERVER=localhost
 DB_PORT=1433
+
+JWT_SECRET=your_secret_here
+JWT_EXPIRES_IN=1d
 ```
 
-> ⚠️ `.env` is **not committed** to version control.
+`.env` is **never committed**.
 
 ---
 
-## 🛠️ Development Scripts
+## 10. What Is Intentionally Not Implemented (Yet)
 
-```bash
-npm run dev     # Run backend with nodemon
-npm start       # Run backend normally
-```
+These are **future enhancements**, not missing features:
 
----
+- Leaderboards
+- Achievements
+- Performance logs
+- System logs
+- Analytics views
+- Triggers for rewards
 
-## 🚧 Planned Next Steps
-
-- Introduce **service layer** for DB calls
-- Replace raw queries with **stored procedures**
-- Add `game` and `stats` APIs
-- Add request validation & error middleware
-- Implement authentication (if required)
+The schema already supports them.
 
 ---
 
-## 📌 Key Architectural Rule
+## 11. Backend Completeness Status
 
-> **All business logic belongs in the database.**  
-> Backend only orchestrates and integrates.
+### ✅ Implemented & Stable
 
-This ensures strong DBMS alignment and clean system design.
+- JWT Authentication
+- Player management
+- Session lifecycle
+- Adaptive difficulty
+- Session summaries
+- Player dashboards
+
+### 🚀 Ready For
+
+- Frontend integration
+- UI-driven testing
+- Feature expansion
 
 ---
 
-✅ Backend foundation is complete and ready for feature development.
+## 12. Final Architectural Rule
 
+> **Frontend controls gameplay flow.  
+> Backend guarantees correctness, security, and persistence.  
+> Database owns intelligence.**
+
+This backend is now **production-ready for the current frontend** and **academically sound** for evaluation.
+
+---
