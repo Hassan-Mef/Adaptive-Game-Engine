@@ -16,35 +16,41 @@ async function startGameSession(playerId) {
     }
   );
 
-  return result.output;
+  // ✅ READ OUTPUT PARAM
+  return result.output.attempt_id;
 }
+
 
 /**
  * Log a single round inside a session
+ * Matches sp_LogSessionRound EXACTLY
  */
 async function logSessionRound(roundData) {
   await executeSP(
     'sp_LogSessionRound',
     {
-      SessionID: { type: sql.Int, value: roundData.sessionId },
-      ShotsFired: { type: sql.Int, value: roundData.shotsFired },
-      Hits: { type: sql.Int, value: roundData.hits },
-      Score: { type: sql.Int, value: roundData.score },
-      ReactionTime: { type: sql.Float, value: roundData.reactionTime },
-      Difficulty: { type: sql.VarChar(20), value: roundData.difficulty }
+      attempt_id:           { type: sql.Int,   value: roundData.attemptId },
+      round_index:          { type: sql.Int,   value: roundData.roundIndex },
+      difficulty_tier:      { type: sql.VarChar(10), value: roundData.difficultyTier },
+      difficulty_sublevel:  { type: sql.Float, value: roundData.difficultySublevel },
+      accuracy:             { type: sql.Float, value: roundData.accuracy },
+      shots_fired:          { type: sql.Int,   value: roundData.shotsFired },
+      shots_hit:            { type: sql.Int,   value: roundData.shotsHit },
+      avg_reaction_time:    { type: sql.Float, value: roundData.avgReactionTime },
+      round_duration:       { type: sql.Float, value: roundData.roundDuration }
     }
   );
 }
 
 /**
  * End a game session
- * Triggers difficulty recalculation
+ * Aggregates session stats from Session_Rounds
  */
-async function endGameSession(sessionId) {
+async function endGameSession(attemptId) {
   await executeSP(
     'sp_EndGameSession',
     {
-      SessionID: { type: sql.Int, value: sessionId }
+      attempt_id: { type: sql.Int, value: attemptId }
     }
   );
 }

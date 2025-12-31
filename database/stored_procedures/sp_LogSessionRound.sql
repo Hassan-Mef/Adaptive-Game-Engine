@@ -1,3 +1,6 @@
+USE GameDB;
+GO
+
 CREATE PROCEDURE sp_LogSessionRound
     @attempt_id INT,
     @round_index INT,

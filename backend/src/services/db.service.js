@@ -1,22 +1,21 @@
 const { sql, getPool } = require('../config/db');
 
 /**
- * Execute stored procedure with input & output parameters
+ * Generic stored procedure executor
+ * Supports INPUT + OUTPUT parameters
  */
 async function executeSP(spName, inputs = {}, outputs = {}) {
   const pool = getPool();
   const request = pool.request();
 
-  // Bind INPUT parameters
+  // Bind INPUT params
   for (const key in inputs) {
-    const { type, value } = inputs[key];
-    request.input(key, type, value);
+    request.input(key, inputs[key].type, inputs[key].value);
   }
 
-  // Bind OUTPUT parameters
+  // Bind OUTPUT params
   for (const key in outputs) {
-    const type = outputs[key];
-    request.output(key, type);
+    request.output(key, outputs[key]);
   }
 
   const result = await request.execute(spName);
@@ -27,6 +26,4 @@ async function executeSP(spName, inputs = {}, outputs = {}) {
   };
 }
 
-module.exports = {
-  executeSP
-};
+module.exports = { executeSP };
