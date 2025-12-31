@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const sql = require('mssql');
 const { executeSP } = require('./db.service');
 
@@ -29,7 +30,34 @@ async function getPlayerById(playerId) {
   return result.recordset;
 }
 
+async function loginPlayer(username, password) {
+  const result = await executeSP(
+    'sp_LoginPlayer',
+    {
+      username: { type: sql.VarChar(50), value: username }
+    }
+  );
+
+  if (!result.recordset || result.recordset.length === 0) {
+    throw new Error('Invalid username or password');
+  }
+
+  const player = result.recordset[0];
+
+  const passwordMatch = await bcrypt.compare(password, player.password_hash);
+
+  if (!passwordMatch) {
+    throw new Error('Invalid username or password');
+  }
+
+  return {
+    playerId: player.player_id
+  };
+}
+
 module.exports = {
+  getPlayerById,
   registerPlayer,
-  getPlayerById
+  loginPlayer   
 };
+

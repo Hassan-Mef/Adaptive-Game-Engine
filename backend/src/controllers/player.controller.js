@@ -51,7 +51,28 @@ async function createPlayer(req, res) {
     });
   }
 }
+
+async function login(req, res) {
+  try {
+    const { username, password } = req.body;
+
+    const result = await playerService.loginPlayer(username, password);
+
+    res.json({
+      success: true,
+      playerId: result.playerId
+    });
+  } catch (err) {
+    res.status(401).json({
+      success: false,
+      error: err.message
+    });
+  }
+}
+
+
 module.exports = {
   getPlayer,
-  createPlayer
+  createPlayer,
+  login
 };
