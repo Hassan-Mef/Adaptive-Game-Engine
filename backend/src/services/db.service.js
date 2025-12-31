@@ -1,23 +1,29 @@
 const { sql, getPool } = require('../config/db');
 
-async function executeSP(spName, inputs = {}) {
+/**
+ * Generic stored procedure executor
+ * Supports INPUT + OUTPUT parameters
+ */
+async function executeSP(spName, inputs = {}, outputs = {}) {
   const pool = getPool();
-
-  if (!pool) {
-    throw new Error('Database pool not initialized');
-  }
-
   const request = pool.request();
 
+  // Bind INPUT params
   for (const key in inputs) {
-    const { type, value } = inputs[key];
-    request.input(key, type, value);
+    request.input(key, inputs[key].type, inputs[key].value);
+  }
+
+  // Bind OUTPUT params
+  for (const key in outputs) {
+    request.output(key, outputs[key]);
   }
 
   const result = await request.execute(spName);
-  return result.recordset;
+
+  return {
+    recordset: result.recordset,
+    output: result.output
+  };
 }
 
-module.exports = {
-  executeSP
-};
+module.exports = { executeSP };

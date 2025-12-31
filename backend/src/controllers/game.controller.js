@@ -1,38 +1,77 @@
-const { sql } = require('../config/db');
-const { executeSP } = require('../services/db.service');
+const gameService = require('../services/game.service');
 
-exports.recordAttempt = async (req, res) => {
-  const { playerId, score, accuracy, timeTaken } = req.body;
-
-  if (
-    playerId === undefined ||
-    score === undefined ||
-    accuracy === undefined ||
-    timeTaken === undefined
-  ) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing required fields'
-    });
-  }
-
+/**
+ * Start a new game session
+ * Returns attemptId
+ */
+async function startSession(req, res) {
   try {
-    const result = await executeSP('sp_RecordAttempt', {
-      PlayerID: { type: sql.Int, value: playerId },
-      Score: { type: sql.Int, value: score },
-      Accuracy: { type: sql.Float, value: accuracy },
-      TimeTaken: { type: sql.Float, value: timeTaken }
-    });
+    const { playerId } = req.body;
 
-    res.status(200).json({
+    const attemptId = await gameService.startGameSession(playerId);
+
+    res.json({
       success: true,
-      difficulty: result[0]
+      attemptId
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+
+/**
+ * Log a single round
+ */
+async function logRound(req, res) {
+  try {
+    const {
+      attemptId,
+      roundIndex,
+      difficultyTier,
+      difficultySublevel,
+      accuracy,
+      shotsFired,
+      shotsHit,
+      avgReactionTime,
+      roundDuration
+    } = req.body;
+
+    await gameService.logSessionRound({
+      attemptId,
+      roundIndex,
+      difficultyTier,
+      difficultySublevel,
+      accuracy,
+      shotsFired,
+      shotsHit,
+      avgReactionTime,
+      roundDuration
     });
 
+    res.json({ success: true });
   } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
+    res.status(500).json({ success: false, error: err.message });
   }
+}
+
+/**
+ * End a game session
+ */
+async function endSession(req, res) {
+  try {
+    const { attemptId } = req.body;
+
+    await gameService.endGameSession(attemptId);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+module.exports = {
+  startSession,
+  logRound,
+  endSession
 };
