@@ -1,77 +1,112 @@
-const gameService = require('../services/game.service');
+const gameService = require("../services/game.service");
 
-/**
- * Start a new game session
- * Returns attemptId
- */
 async function startSession(req, res) {
-  try {
-    const { playerId } = req.body;
+  const playerId = req.user.playerId;
 
-    const attemptId = await gameService.startGameSession(playerId);
+
+  const session = await gameService.startGameSession(playerId);
+
+  res.json({
+    success: true,
+    sessionId: session.SessionID,
+  });
+}
+
+async function logRound(req, res) {
+  const { sessionId, shotsFired, hits, score, reactionTime, difficulty } =
+    req.body;
+  try {
+    const result = await gameService.logRound(sessionId, {
+      shotsFired,
+      hits,
+      score,
+      reactionTime,
+      difficulty,
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+async function endSession(req, res) {
+  const { sessionId } = req.body;
+  try {
+    const result = await gameService.endGameSession(sessionId);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+/**
+ * Get session entry difficulty state
+ * Called BEFORE starting a session
+ */
+async function getSessionEntryState(req, res) {
+  try {
+    const playerId  = req.user.playerId;
+
+    if (!playerId) {
+      return res.status(400).json({
+        success: false,
+        error: 'playerId is required'
+      });
+    }
+
+    const state = await gameService.getSessionEntryDifficulty(Number(playerId));
 
     res.json({
       success: true,
-      attemptId
+      data: {
+        hasHistory: state.HasHistory,
+        difficultyScore: state.DifficultyScore,
+        recommendedLevelId: state.RecommendedLevelID
+      }
     });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-}
-
-
-/**
- * Log a single round
- */
-async function logRound(req, res) {
-  try {
-    const {
-      attemptId,
-      roundIndex,
-      difficultyTier,
-      difficultySublevel,
-      accuracy,
-      shotsFired,
-      shotsHit,
-      avgReactionTime,
-      roundDuration
-    } = req.body;
-
-    await gameService.logSessionRound({
-      attemptId,
-      roundIndex,
-      difficultyTier,
-      difficultySublevel,
-      accuracy,
-      shotsFired,
-      shotsHit,
-      avgReactionTime,
-      roundDuration
+    res.status(500).json({
+      success: false,
+      error: err.message
     });
-
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
   }
 }
 
-/**
- * End a game session
+/** 
+ * Get session summary
  */
-async function endSession(req, res) {
+
+
+async function getSessionSummary(req, res) {
   try {
-    const { attemptId } = req.body;
+    const { attemptId } = req.params;
 
-    await gameService.endGameSession(attemptId);
+    const summary = await gameService.getSessionSummary(attemptId);
 
-    res.json({ success: true });
+    if (!summary) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: summary
+    });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
   }
 }
+
+
 
 module.exports = {
   startSession,
   logRound,
-  endSession
+  endSession,
+  getSessionEntryState,
+  getSessionSummary
 };

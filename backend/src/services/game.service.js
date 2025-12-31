@@ -55,8 +55,46 @@ async function endGameSession(attemptId) {
   );
 }
 
+
+/**
+ * Get session entry difficulty state
+ * Used at game start
+ */
+async function getSessionEntryDifficulty(playerId) {
+  const result = await executeSP(
+    'sp_RecommendDifficultyLevel',
+    {
+      PlayerID: { type: sql.Int, value: playerId }
+    },
+    {
+      HasHistory: sql.Bit,
+      DifficultyScore: sql.Int,
+      RecommendedLevelID: sql.Int
+    }
+  );
+
+  return result.output;
+}
+
+/** Get session summary */
+
+async function getSessionSummary(attemptId) {
+  const result = await executeSP(
+    'sp_GetSessionSummary',
+    {
+      attempt_id: { type: sql.Int, value: attemptId }
+    }
+  );
+
+  return result.recordset[0];
+}
+
+
+
 module.exports = {
   startGameSession,
   logSessionRound,
-  endGameSession
+  endGameSession,
+  getSessionEntryDifficulty,
+  getSessionSummary
 };

@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
 const playerService = require('../services/player.service');
+const jwt = require('jsonwebtoken');
+
 
 const SALT_ROUNDS = 10;
 
@@ -58,9 +60,20 @@ async function login(req, res) {
 
     const result = await playerService.loginPlayer(username, password);
 
+    // 🔐 Create JWT
+    const token = jwt.sign(
+      {
+        playerId: result.playerId
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN || '1d'
+      }
+    );
+
     res.json({
       success: true,
-      playerId: result.playerId
+      token
     });
   } catch (err) {
     res.status(401).json({
@@ -69,6 +82,7 @@ async function login(req, res) {
     });
   }
 }
+
 
 /**
  * Get player dashboard statistics
@@ -97,7 +111,8 @@ async function getPlayerStats(req, res) {
     });
   }
 }
-  
+
+
 
 module.exports = {
   getPlayer,
