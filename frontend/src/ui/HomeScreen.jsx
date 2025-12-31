@@ -1,23 +1,22 @@
 import React from "react";
 import "../styles/global.css";
 import gun from "../assets/gun.png"
-
-export default function HomeScreen() {
+export default function HomeScreen({ onPlay, onSettings, onLeaderboard, onLogin }) {
   return (
     <div>
       <div className="background-overlay"></div>
+      <div className="main-menu-container">
 
       <div className="login-container">
-        <button className="menu-button login-button">LOG IN</button>
+        <button className="menu-button login-button" onClick={onLogin}>LOG IN</button>
       </div>
 
-      <div className="main-menu-container">
         <h1 className="game-title">THUNDER STRIKE</h1>
 
         <div className="button-group">
-          <button className="menu-button secondary-button">SETTINGS</button>
-          <button className="menu-button primary-button">PLAY</button>
-          <button className="menu-button secondary-button">LEADERBOARDS</button>
+          <button className="menu-button secondary-button" onClick={onSettings}>SETTINGS</button>
+          <button className="menu-button primary-button" onClick={onPlay}>PLAY</button>
+          <button className="menu-button secondary-button" onClick={onLeaderboard}>LEADERBOARDS</button>
         </div>
 
         <div
@@ -28,3 +27,4 @@ export default function HomeScreen() {
     </div>
   );
 }
+

@@ -1,12 +1,39 @@
 import React, { useState } from "react";
-import "./style.css";
-import "./login-style.css";
+import "../styles/global.css";
+import { loginPlayer } from "../api/player";
 
-export default function LoginScreen() {
+export default function LoginScreen({ onBack, onLoginSuccess }) {
   const [activeTab, setActiveTab] = useState("login");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const switchTab = (tab) => {
-    setActiveTab(tab);
+  const switchTab = (tab) => setActiveTab(tab);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await loginPlayer(username, password);
+      console.log("Login Success:", result);
+
+      // TODO: store token or user info in context/localStorage if needed
+      if (onLoginSuccess) onLoginSuccess(result);
+    } catch (err) {
+      setError(err.message);
+      console.error("Login failed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = (e) => {
+    e.preventDefault();
+    // TODO: add signup logic here
+    console.log("Signup submitted");
   };
 
   return (
@@ -15,6 +42,17 @@ export default function LoginScreen() {
 
       <div className="auth-wrapper">
         <div className="auth-card">
+          {/* Optional Back Button */}
+          {onBack && (
+            <button
+              className="menu-button secondary-button full-width"
+              style={{ marginBottom: "20px" }}
+              onClick={onBack}
+            >
+              ← BACK
+            </button>
+          )}
+
           <div className="auth-tabs">
             <button
               className={`tab-btn ${activeTab === "login" ? "active" : ""}`}
@@ -30,33 +68,51 @@ export default function LoginScreen() {
             </button>
           </div>
 
+          {/* Login Form */}
           <form
             className={`auth-form ${activeTab === "login" ? "active-form" : ""}`}
             style={{ display: activeTab === "login" ? "flex" : "none" }}
+            onSubmit={handleLogin}
           >
             <h2 className="form-title">OPERATOR ACCESS</h2>
 
             <div className="input-group">
               <label>IDENTITY</label>
-              <input type="text" placeholder="Username or Email" required />
+              <input
+                type="text"
+                placeholder="Username or Email"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
             </div>
 
             <div className="input-group">
               <label>PASSCODE</label>
-              <input type="password" placeholder="Password" required />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
 
-            <button type="submit" className="menu-button primary-button full-width">
-              INITIALIZE
-            </button>
-            <p className="helper-text">
-              Forgot Credentials? <a href="#">Reset Here</a>
-            </p>
-          </form>
+            {error && <p style={{ color: "red" }}>{error}</p>}
 
+            <button
+              type="submit"
+              className="menu-button primary-button full-width"
+              disabled={loading}
+            >
+              {loading ? "Logging in..." : "INITIALIZE"}
+            </button>
+          </form>
+          {/* Signup Form */}
           <form
             className={`auth-form ${activeTab === "signup" ? "active-form" : ""}`}
             style={{ display: activeTab === "signup" ? "flex" : "none" }}
+            onSubmit={handleSignup}
           >
             <h2 className="form-title">NEW RECRUIT</h2>
 

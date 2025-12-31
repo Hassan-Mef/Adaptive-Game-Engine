@@ -7,6 +7,7 @@ import GameOverlay from "./ui/GameOverlay";
 import RoundSummary from "./ui/RoundSummary";
 import SessionSummary from "./ui/SessionSummary";
 import HomeScreen from "./ui/HomeScreen";
+import LoginScreen from "./ui/LoginScreen";
 
 export default function App() {
   const [stats, setStats] = useState(null);
@@ -23,16 +24,25 @@ export default function App() {
 
   const handleSessionFinish = (session) => {
     if (!session || !session.rounds || session.rounds.length === 0) return;
-    
-    console.log("[APP] Session finished. Final Difficulty:", session.finalDifficulty);
+
+    console.log(
+      "[APP] Session finished. Final Difficulty:",
+      session.finalDifficulty
+    );
     setPersistentDifficulty(session.finalDifficulty);
     setSessionSummary(session);
     setUiMode("SESSION_SUMMARY");
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden", background: "#000" }}>
-
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
       {/* GAME LAYER: Stays mounted during SESSION_SUMMARY to prevent WebGL crash */}
       {screen === "GAME" && (
         <>
@@ -66,22 +76,36 @@ export default function App() {
       )}
 
       {/* UI OVERLAY LAYER */}
-      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zSelf: 10 }}>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          pointerEvents: "none",
+          zSelf: 10,
+        }}
+      >
         <div style={{ pointerEvents: "auto", width: "100%", height: "100%" }}>
-          
           {screen === "HOME" && uiMode === "HOME" && (
-            <>
-            {/* <HomeScreen /> */}
-            <HomeMenu
-              onStart={() => {
+            <HomeScreen
+              onPlay={() => {
                 setStats(null);
-                setPersistentDifficulty(null); // Fresh start from Home
+                setPersistentDifficulty(null);
                 setRoundKey((k) => k + 1);
                 setScreen("GAME");
                 setUiMode("GAME");
               }}
+              onSettings={() => console.log("Settings clicked")}
+              onLeaderboard={() => console.log("Leaderboard clicked")}
+              onLogin={() => setScreen("LOGIN")}
             />
-            </>
+          )}
+          {screen === "LOGIN" && (
+            <LoginScreen
+              onBack={() => setScreen("HOME")} // Optional: add a back button
+              onLoginSuccess={() => {
+                setScreen("HOME"); // or GAME if you want to auto-start
+              }}
+            />
           )}
 
           {uiMode === "ROUND_SUMMARY" && (
