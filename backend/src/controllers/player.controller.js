@@ -97,7 +97,8 @@ async function getPlayerStats(req, res) {
     });
   }
 }
-  
+
+
 
 module.exports = {
   getPlayer,

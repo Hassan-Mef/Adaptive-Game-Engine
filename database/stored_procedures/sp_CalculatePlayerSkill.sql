@@ -27,7 +27,7 @@ BEGIN
        ------------------------------- */
     SELECT
         @AvgReactionTime = AVG(r.avg_reaction_time),
-        @Consistency = 100 - STDDEV(r.accuracy)
+        @Consistency = 100 - STDEV(r.accuracy)
     FROM Attempts a
     JOIN Session_Rounds r
         ON a.attempt_id = r.attempt_id

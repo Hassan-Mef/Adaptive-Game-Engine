@@ -55,8 +55,37 @@ async function endGameSession(attemptId) {
   );
 }
 
+
+/**
+ * Get session entry difficulty state
+ * Used at game start
+ */
+async function getSessionEntryDifficulty(playerId) {
+  const result = await executeSP(
+    'sp_RecommendDifficultyLevel',
+    {
+      PlayerID: { type: sql.Int, value: playerId }
+    },
+    {
+      HasHistory: sql.Bit,
+      DifficultyScore: sql.Int,
+      RecommendedLevelID: sql.Int
+    }
+  );
+
+  return result.output;
+}
+
+module.exports = {
+  getSessionEntryDifficulty
+};
+
+
+
+
 module.exports = {
   startGameSession,
   logSessionRound,
-  endGameSession
+  endGameSession,
+  getSessionEntryDifficulty
 };

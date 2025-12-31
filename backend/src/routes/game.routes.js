@@ -6,4 +6,7 @@ router.post('/start', gameController.startSession);
 router.post('/log-round', gameController.logRound);
 router.post('/end', gameController.endSession);
 
+router.get('/session-entry/:playerId', gameController.getSessionEntryState);
+
+
 module.exports = router;
