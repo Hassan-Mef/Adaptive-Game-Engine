@@ -1,1 +1,370 @@
 /* global styles */
+
+
+/* Home Page CSS for Retro-Futuristic Shooter Game Menu */
+
+/* Custom properties */
+:root {
+    --bg-dark: #090014;       /* Deepest purple/black */
+    --bg-purple: #1a0b2e;     /* Rich purple for the center */
+    --neon-purple: #d000ff;   /* Bright magenta/purple */
+    --electric-blue: #00f2ff; /* Cyan blue */
+    --text-color: #FFFFFF;
+}
+
+/* Reset and base styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: 'Teko', sans-serif;
+    
+    /* FIX: Replaced flat black with a rich purple gradient */
+    background: radial-gradient(circle at center, var(--bg-purple) 0%, var(--bg-dark) 80%);
+    color: white;
+}
+
+/* --- 1. Background Effects --- */
+
+/* The moving floor grid (Made slightly more visible and purple) */
+body::before {
+    content: '';
+    position: relative;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    /* Purple grid lines */
+    background-image: 
+        linear-gradient(rgba(208, 0, 255, 0.2) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(208, 0, 255, 0.2) 1px, transparent 1px);
+    background-size: 60px 60px;
+    transform: perspective(500px) rotateX(60deg);
+    animation: gridMove 4s linear infinite;
+    z-index: -3;
+}
+
+@keyframes gridMove {
+    0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+    100% { transform: perspective(500px) rotateX(60deg) translateY(60px); }
+}
+
+/* FIX: Removed the heavy black vignette. 
+   Added a subtle glowing fog instead. */
+.background-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 50% 50%, rgba(208, 0, 255, 0.05), transparent 70%);
+    z-index: -2;
+    pointer-events: none;
+}
+
+/* Scanline effect (kept subtle) */
+.background-overlay::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+    background-size: 100% 4px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* --- 2. The Weapon --- */
+.weapon-silhouette {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    width: 80%;
+    max-width: 900px;
+    height: 500px;
+    
+    background-image: url('gun.png'); 
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain; 
+    
+    z-index: 0; /* Behind buttons, but in front of background */
+    
+    animation: gunHover 5s ease-in-out infinite;
+}
+
+@keyframes gunHover {
+    0% { transform: translate(-50%, -50%) translateY(0px); }
+    50% { transform: translate(-50%, -50%) translateY(-20px); }
+    100% { transform: translate(-50%, -50%) translateY(0px); }
+}
+
+
+/* --- 3. Layout & UI --- */
+
+.main-menu-container {
+    position: relative;
+    z-index: 10;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; 
+    align-items: center;
+    padding: 50px 0 80px 0;
+    box-sizing: border-box;
+}
+
+/* --- Title Styling (FIXED) --- */
+.game-title {
+    font-size: 7rem; /* Big and Bold again */
+    margin: 0;
+    color: var(--text-color);
+    letter-spacing: 5px;
+    font-weight: 700;
+    font-style: normal; /* Removed Italic */
+    text-transform: uppercase;
+    
+    /* Crisp Neon Glow (Standard Tech Look) */
+    text-shadow: 
+        0 0 10px rgba(255,255,255,0.8),
+        0 0 20px var(--neon-purple),
+        0 0 40px var(--neon-purple),
+        0 0 80px var(--neon-purple);
+}
+
+/* --- Buttons --- */
+.button-group {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+}
+
+.menu-button {
+    padding: 12px 40px;
+    font-size: 1.8rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    cursor: pointer;
+    background: transparent;
+    color: white;
+    border: 2px solid rgba(255,255,255,0.1);
+    font-family: 'Teko', sans-serif;
+    transition: 0.2s ease-in-out;
+    text-transform: uppercase;
+    
+    /* Slight skew for action feel */
+    transform: skew(-10deg); 
+}
+
+/* Play Button */
+.primary-button {
+    background: var(--electric-blue);
+    border: none;
+    color: #05020a;
+    padding: 15px 70px;
+    font-size: 2rem;
+    box-shadow: 0 0 30px rgba(0, 242, 255, 0.4);
+}
+
+.primary-button:hover {
+    transform: skew(-10deg) scale(1.05);
+    background: white;
+    box-shadow: 0 0 60px rgba(0, 242, 255, 0.8);
+}
+
+/* Secondary Buttons */
+.secondary-button {
+    border: 2px solid var(--neon-purple);
+    color: #fff;
+    box-shadow: inset 0 0 10px rgba(208, 0, 255, 0.2);
+}
+
+.secondary-button:hover {
+    background: var(--neon-purple);
+    box-shadow: 0 0 30px var(--neon-purple);
+}
+
+/* --- Login Button (FIXED) --- */
+.login-container {
+    position: absolute;
+    top: 30px;
+    right: 40px;
+}
+
+.login-button {
+    font-size: 1.2rem;
+    padding: 8px 25px;
+    border: 1px solid var(--neon-purple);
+    background: rgba(208, 0, 255, 0.1); /* Slight fill by default */
+    color: white;
+    transform: skew(0deg); /* No skew for login */
+    
+    /* Added default glow so it pops */
+    box-shadow: 0 0 15px rgba(208, 0, 255, 0.3); 
+}
+
+.login-button:hover {
+    background: var(--neon-purple);
+    box-shadow: 0 0 30px var(--neon-purple);
+    transform: scale(1.05);
+}
+
+
+
+/* login form styles */
+/* Reuse the existing variables from style.css, but ensure they are here if standalone */
+:root {
+    --bg-dark: #090014;
+    --neon-purple: #d000ff;
+    --electric-blue: #00f2ff;
+    --glass-bg: rgba(13, 2, 26, 0.85);
+}
+
+/* --- Container Layout --- */
+.auth-wrapper {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    position: relative;
+}
+
+/* --- The Glassmorphism Card --- */
+.auth-card {
+    width: 450px;
+    background: var(--glass-bg);
+    border: 1px solid rgba(208, 0, 255, 0.3);
+    box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 20px rgba(208, 0, 255, 0.1);
+    backdrop-filter: blur(10px); /* Blurs the grid behind the card */
+    padding: 2rem;
+    position: relative;
+    /* Corner accents using clip-path could go here, but keeping it simple for now */
+}
+
+/* --- Tab Switcher --- */
+.auth-tabs {
+    display: flex;
+    margin-bottom: 30px;
+    border-bottom: 2px solid rgba(255,255,255,0.1);
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-family: 'Teko', sans-serif;
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding-bottom: 10px;
+    transition: 0.3s;
+    text-transform: uppercase;
+}
+
+.tab-btn.active {
+    color: var(--electric-blue);
+    border-bottom: 2px solid var(--electric-blue);
+    text-shadow: 0 0 10px var(--electric-blue);
+}
+
+.tab-btn:hover {
+    color: white;
+}
+
+/* --- Form Elements --- */
+.auth-form {
+    display: none; /* Hidden by default, JS toggles this */
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Show login by default */
+#login-form { display: flex; }
+
+.form-title {
+    margin: 0;
+    font-size: 2.5rem;
+    color: white;
+    text-align: center;
+    letter-spacing: 2px;
+    font-weight: 400;
+}
+
+/* --- Inputs --- */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.input-row {
+    display: flex;
+    gap: 15px;
+}
+
+.input-group.short {
+    width: 80px; /* Small width for Age */
+}
+
+label {
+    font-size: 1.2rem;
+    color: var(--neon-purple);
+    letter-spacing: 1px;
+}
+
+input {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 12px;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Readable font for typing */
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: var(--electric-blue);
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+    background: rgba(0, 242, 255, 0.05);
+}
+
+/* --- Checkbox Styling --- */
+.terms-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    color: #ccc;
+}
+
+.terms-group a {
+    color: var(--electric-blue);
+    text-decoration: none;
+}
+
+/* --- Button Override --- */
+.full-width {
+    width: 100%;
+    margin-top: 10px;
+    transform: skew(0deg) !important; /* Remove skew for form buttons if preferred, or keep it */
+    display: flex;
+    justify-content: center;
+}
+
+.helper-text {
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+.helper-text a {
+    color: white;
+}

@@ -6,6 +6,7 @@ import HomeMenu from "./ui/HomeMenu";
 import GameOverlay from "./ui/GameOverlay";
 import RoundSummary from "./ui/RoundSummary";
 import SessionSummary from "./ui/SessionSummary";
+import HomeScreen from "./ui/HomeScreen";
 
 export default function App() {
   const [stats, setStats] = useState(null);
@@ -69,6 +70,8 @@ export default function App() {
         <div style={{ pointerEvents: "auto", width: "100%", height: "100%" }}>
           
           {screen === "HOME" && uiMode === "HOME" && (
+            <>
+            {/* <HomeScreen /> */}
             <HomeMenu
               onStart={() => {
                 setStats(null);
@@ -78,6 +81,7 @@ export default function App() {
                 setUiMode("GAME");
               }}
             />
+            </>
           )}
 
           {uiMode === "ROUND_SUMMARY" && (
