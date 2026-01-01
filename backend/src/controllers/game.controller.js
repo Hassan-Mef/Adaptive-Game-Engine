@@ -12,21 +12,21 @@ async function startSession(req, res) {
 }
 
 async function logRound(req, res) {
-  const { sessionId, shotsFired, hits, score, reactionTime, difficulty } =
-    req.body;
   try {
-    const result = await gameService.logRound(sessionId, {
-      shotsFired,
-      hits,
-      score,
-      reactionTime,
-      difficulty,
+    await gameService.logSessionRound(req.body);
+
+    res.json({
+      success: true
     });
-    res.json({ success: true, data: result });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error("[LOG ROUND ERROR]", err);
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
   }
 }
+
 
 async function endSession(req, res) {
   const { sessionId } = req.body;

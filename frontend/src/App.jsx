@@ -28,19 +28,22 @@ export default function App() {
 
   if (loading) return null;
 
-  const handleSessionFinish = (session) => {
-    if (!session || !session.rounds || session.rounds.length === 0) return;
+  const handleSessionFinish = async (session) => {
+  if (!session || !session.rounds || session.rounds.length === 0) return;
 
-    // FIX: Using JSON.parse(JSON.stringify()) to ensure you see the DETAILS in the log immediately
-    console.log(
-      "[APP] Session Finished. Full Data:",
-      JSON.parse(JSON.stringify(session))
+  console.log("[APP] Session Finished:", session);
+
+  if (sessionId) {
+    await import("./api/game").then(({ endSession }) =>
+      endSession(sessionId)
     );
+  }
 
-    setPersistentDifficulty(session.finalDifficulty);
-    setSessionSummary(session);
-    setUiMode("SESSION_SUMMARY");
-  };
+  setPersistentDifficulty(session.finalDifficulty);
+  setSessionSummary(session);
+  setUiMode("SESSION_SUMMARY");
+};
+
 
   return (
     <div
@@ -59,9 +62,38 @@ export default function App() {
             onStatsUpdate={setStats}
             initialDifficulty={persistentDifficulty}
             onGameReady={setOverlayApi}
-            onRoundEnd={(data) => {
+            onRoundEnd={async (data) => {
               setRoundSummary(data);
               setUiMode("ROUND_SUMMARY");
+
+              if (!sessionId) return;
+
+              const { round, liveStats, difficulty } = data;
+
+              const accuracy =
+                liveStats.shotsFired > 0
+                  ? liveStats.shotsHit / liveStats.shotsFired
+                  : 0;
+
+              const avgReactionTime =
+                liveStats.reactionTimes.length > 0
+                  ? liveStats.reactionTimes.reduce((a, b) => a + b, 0) /
+                    liveStats.reactionTimes.length
+                  : null;
+
+              await import("./api/game").then(({ logRound }) =>
+                logRound({
+                  attemptId: sessionId,
+                  roundIndex: round,
+                  difficultyTier: difficulty.tier,
+                  difficultySublevel: difficulty.subLevel,
+                  accuracy,
+                  shotsFired: liveStats.shotsFired,
+                  shotsHit: liveStats.shotsHit,
+                  avgReactionTime,
+                  roundDuration: liveStats.duration ?? 0,
+                })
+              );
             }}
             onSessionFinish={handleSessionFinish}
           />
@@ -101,17 +133,17 @@ export default function App() {
                   return;
                 }
 
-                // 1️⃣ Get recommended difficulty
+                // Get recommended difficulty
                 const entry = await getSessionEntryState();
                 console.log("[APP] Session Entry State:", entry);
-                
-                // 2️⃣ Start session
+
+                // Start session
                 const attemptId = await startSession();
                 // debugging log
                 console.log("[APP] Started Session with ID:", attemptId);
                 setSessionId(attemptId);
 
-                // 3️⃣ Apply difficulty (if exists)`
+                // Apply difficulty (if exists)`
                 if (entry.hasHistory) {
                   setPersistentDifficulty({
                     tier: "AUTO", // or map from RecommendedLevelID
@@ -162,6 +194,7 @@ export default function App() {
               onExit={() => {
                 setSessionSummary(null);
                 setPersistentDifficulty(null);
+                setSessionId(null);
                 setUiMode("HOME");
                 setScreen("HOME");
               }}
