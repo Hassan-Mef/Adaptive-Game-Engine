@@ -26,7 +26,7 @@ export default function SessionSummary({ data, onRestart, onExit }) {
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.9)",
+        background: "rgba(0,0,0,0.95)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -42,39 +42,139 @@ export default function SessionSummary({ data, onRestart, onExit }) {
           border: "1px solid #333",
           color: "white",
           textAlign: "center",
-          width: "400px",
+          width: "500px",
+          maxHeight: "90vh",
+          overflowY: "auto",
         }}
       >
-        <h1 style={{ margin: "0 0 20px 0", color: "#4ebfff" }}>
+        <h1 style={{ margin: "0 0 10px 0", color: "#4ebfff" }}>
           Session Complete
         </h1>
+        <p style={{ color: "#888", marginBottom: "20px" }}>
+          Final Tier: {finalDifficulty?.tier} {finalDifficulty?.subLevel}
+        </p>
+
+        {/* Global Stats */}
         <div
           style={{
-            display: "grid",
-            gap: "15px",
-            marginBottom: "30px",
-            fontSize: "1.1rem",
+            display: "flex",
+            justifyContent: "space-around",
+            background: "#252525",
+            padding: "20px",
+            borderRadius: "12px",
+            marginBottom: "25px",
           }}
         >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>Accuracy:</span> <strong>{accuracy}%</strong>
+          <div>
+            <div
+              style={{
+                color: "#4ebfff",
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+              }}
+            >
+              {accuracy}%
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "#888" }}>ACCURACY</div>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>Reaction:</span> <strong>{avgReaction}ms</strong>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <span>Difficulty:</span>{" "}
-            <strong>
-              {finalDifficulty?.tier} {finalDifficulty?.subLevel}
-            </strong>
+          <div>
+            <div
+              style={{
+                color: "#4ebfff",
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+              }}
+            >
+              {avgReaction}ms
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "#888" }}>
+              AVG REACTION
+            </div>
           </div>
         </div>
+
+        {/* Round Breakdown Chart */}
+        <h3
+          style={{
+            textAlign: "left",
+            fontSize: "0.9rem",
+            color: "#888",
+            marginBottom: "10px",
+          }}
+        >
+          ROUND-BY-ROUND PROGRESS
+        </h3>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+            marginBottom: "30px",
+          }}
+        >
+          {rounds.map((r, i) => {
+            const roundAcc =
+              r.stats.shotsFired > 0
+                ? (r.stats.shotsHit / r.stats.shotsFired) * 100
+                : 0;
+            return (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  background: "#222",
+                  padding: "10px",
+                  borderRadius: "6px",
+                }}
+              >
+                <span
+                  style={{
+                    width: "30px",
+                    fontWeight: "bold",
+                    color: "#4ebfff",
+                  }}
+                >
+                  R{r.round}
+                </span>
+                <div
+                  style={{
+                    flex: 1,
+                    height: "8px",
+                    background: "#333",
+                    borderRadius: "4px",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${roundAcc}%`,
+                      height: "100%",
+                      background: "#4ebfff",
+                      transition: "width 1s ease-out",
+                    }}
+                  />
+                </div>
+                <span style={{ width: "50px", fontSize: "0.8rem" }}>
+                  {Math.round(roundAcc)}%
+                </span>
+                <span
+                  style={{ width: "70px", fontSize: "0.7rem", color: "#888" }}
+                >
+                  {r.difficulty.tier}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
         <div style={{ display: "flex", gap: "10px" }}>
           <button
             onClick={onRestart}
             style={{
               flex: 1,
-              padding: "12px",
+              padding: "15px",
               background: "#4ebfff",
               border: "none",
               borderRadius: "8px",
@@ -82,13 +182,13 @@ export default function SessionSummary({ data, onRestart, onExit }) {
               cursor: "pointer",
             }}
           >
-            RESTART
+            RESTART SESSION
           </button>
           <button
             onClick={onExit}
             style={{
               flex: 1,
-              padding: "12px",
+              padding: "15px",
               background: "#333",
               color: "white",
               border: "none",
@@ -96,7 +196,7 @@ export default function SessionSummary({ data, onRestart, onExit }) {
               cursor: "pointer",
             }}
           >
-            EXIT
+            EXIT TO MENU
           </button>
         </div>
       </div>

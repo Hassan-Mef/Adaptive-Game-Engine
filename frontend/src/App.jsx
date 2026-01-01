@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import Crosshair from "./game/components/Crosshair";
 import GameCanvas from "./game/GameCanvas";
 import GameHUD from "./ui/GameHUD";
-import HomeMenu from "./ui/HomeMenu";
 import GameOverlay from "./ui/GameOverlay";
 import RoundSummary from "./ui/RoundSummary";
 import SessionSummary from "./ui/SessionSummary";
@@ -13,7 +12,6 @@ import { useAuth } from "./contexts/AuthContext";
 export default function App() {
   const { isAuthenticated, logout, loading } = useAuth();
 
-  
   const [stats, setStats] = useState(null);
   const [roundKey, setRoundKey] = useState(0);
   const [screen, setScreen] = useState("HOME");
@@ -27,13 +25,13 @@ export default function App() {
   const [sessionSummary, setSessionSummary] = useState(null);
   
   if (loading) return null;
+
   const handleSessionFinish = (session) => {
     if (!session || !session.rounds || session.rounds.length === 0) return;
 
-    console.log(
-      "[APP] Session finished. Final Difficulty:",
-      session.finalDifficulty
-    );
+    // FIX: Using JSON.parse(JSON.stringify()) to ensure you see the DETAILS in the log immediately
+    console.log("[APP] Session Finished. Full Data:", JSON.parse(JSON.stringify(session)));
+    
     setPersistentDifficulty(session.finalDifficulty);
     setSessionSummary(session);
     setUiMode("SESSION_SUMMARY");
@@ -86,13 +84,17 @@ export default function App() {
           position: "absolute",
           inset: 0,
           pointerEvents: "none",
-          zSelf: 10,
+          zIndex: 10,
         }}
       >
         <div style={{ pointerEvents: "auto", width: "100%", height: "100%" }}>
           {screen === "HOME" && uiMode === "HOME" && (
             <HomeScreen
               onPlay={() => {
+                if (!isAuthenticated) {
+                  setScreen("LOGIN");
+                  return;
+                }
                 setStats(null);
                 setPersistentDifficulty(null);
                 setRoundKey((k) => k + 1);
@@ -105,12 +107,11 @@ export default function App() {
               isAuthenticated={isAuthenticated}
             />
           )}
+          
           {screen === "LOGIN" && (
             <LoginScreen
-              onBack={() => setScreen("HOME")} // Optional: add a back button
-              onLoginSuccess={() => {
-                setScreen("HOME"); // or GAME if you want to auto-start
-              }}
+              onBack={() => setScreen("HOME")}
+              onLoginSuccess={() => setScreen("HOME")}
             />
           )}
 
@@ -130,7 +131,7 @@ export default function App() {
               data={sessionSummary}
               onRestart={() => {
                 setUiMode("GAME");
-                setRoundKey((k) => k + 1); // Trigger remount with persistentDifficulty
+                setRoundKey((k) => k + 1);
               }}
               onExit={() => {
                 setSessionSummary(null);

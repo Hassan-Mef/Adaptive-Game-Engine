@@ -87,7 +87,10 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
           baseline
         );
 
-        // Update difficulty
+        // Snapshot current difficulty for this specific round BEFORE updating Ref
+        const currentDifficultySnapshot = { ...difficultyRef.current };
+
+        // Update difficulty Ref for next round
         difficultyRef.current = {
           tier: updated.tier,
           subLevel: updated.subLevel,
@@ -110,11 +113,11 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
           pushEvent({ type: "ACHIEVEMENT", label: ach.name })
         );
 
-        // Save round data to session
+        // Save round data to session with Snapshots
         sessionRef.current.rounds.push({
           round: livesCompletedRef.current,
           stats: liveStats,
-          difficulty: difficultyRef.current,
+          difficulty: currentDifficultySnapshot, 
           events: [...eventsRef.current],
           achievements,
         });
@@ -132,12 +135,14 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
         // Prepare next phase
         if (livesCompletedRef.current >= MAX_LIVE_ROUNDS) {
           phaseRef.current = "SESSION_END";
-          sessionRef.current.finalDifficulty = difficultyRef.current;
+          sessionRef.current.finalDifficulty = { ...difficultyRef.current }; // Snapshot
           setIsRunning(false);
 
           console.log("[SESSION] Completed");
           console.log("[SESSION SUMMARY]", sessionRef.current);
-          onFinish?.(sessionRef.current);
+          
+          // IMPORTANT: Send a shallow copy so App receives a fresh object
+          onFinish?.({ ...sessionRef.current });
         } else {
           phaseRef.current = "ROUND_END";
           setIsRunning(false);
@@ -193,7 +198,7 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
     if (phaseRef.current === "SESSION_END") {
       console.log("[SESSION] Already Completed");
       console.log("[SESSION SUMMARY]", sessionRef.current);
-      onFinish?.(sessionRef.current);
+      onFinish?.({ ...sessionRef.current });
       return;
     }
 
