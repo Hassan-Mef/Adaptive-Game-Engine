@@ -3,12 +3,11 @@ const gameService = require("../services/game.service");
 async function startSession(req, res) {
   const playerId = req.user.playerId;
 
-
-  const session = await gameService.startGameSession(playerId);
+  const attemptId = await gameService.startGameSession(playerId);
 
   res.json({
     success: true,
-    sessionId: session.SessionID,
+    sessionId: attemptId,
   });
 }
 
@@ -44,12 +43,12 @@ async function endSession(req, res) {
  */
 async function getSessionEntryState(req, res) {
   try {
-    const playerId  = req.user.playerId;
+    const playerId = req.user.playerId;
 
     if (!playerId) {
       return res.status(400).json({
         success: false,
-        error: 'playerId is required'
+        error: "playerId is required",
       });
     }
 
@@ -60,21 +59,20 @@ async function getSessionEntryState(req, res) {
       data: {
         hasHistory: state.HasHistory,
         difficultyScore: state.DifficultyScore,
-        recommendedLevelId: state.RecommendedLevelID
-      }
+        recommendedLevelId: state.RecommendedLevelID,
+      },
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 }
 
-/** 
+/**
  * Get session summary
  */
-
 
 async function getSessionSummary(req, res) {
   try {
@@ -85,28 +83,26 @@ async function getSessionSummary(req, res) {
     if (!summary) {
       return res.status(404).json({
         success: false,
-        error: 'Session not found'
+        error: "Session not found",
       });
     }
 
     res.json({
       success: true,
-      data: summary
+      data: summary,
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      error: err.message
+      error: err.message,
     });
   }
 }
-
-
 
 module.exports = {
   startSession,
   logRound,
   endSession,
   getSessionEntryState,
-  getSessionSummary
+  getSessionSummary,
 };
