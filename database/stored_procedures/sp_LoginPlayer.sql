@@ -1,5 +1,3 @@
-USE GameDB;
-GO
 
 CREATE PROCEDURE sp_LoginPlayer
     @username VARCHAR(50)
@@ -9,6 +7,7 @@ BEGIN
 
     SELECT
         player_id,
+        username,
         password_hash
     FROM Players
     WHERE username = @username;

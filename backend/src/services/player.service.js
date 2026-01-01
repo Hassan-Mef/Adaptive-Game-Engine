@@ -28,8 +28,8 @@ async function getPlayerById(playerId) {
   );
 
   return result.recordset;
+  
 }
-
 async function loginPlayer(username, password) {
   const result = await executeSP(
     'sp_LoginPlayer',
@@ -45,13 +45,13 @@ async function loginPlayer(username, password) {
   const player = result.recordset[0];
 
   const passwordMatch = await bcrypt.compare(password, player.password_hash);
-
   if (!passwordMatch) {
     throw new Error('Invalid username or password');
   }
 
   return {
-    playerId: player.player_id
+    playerId: player.player_id,
+    username: player.username
   };
 }
 
