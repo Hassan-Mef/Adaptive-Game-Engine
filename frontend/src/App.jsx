@@ -8,20 +8,25 @@ import RoundSummary from "./ui/RoundSummary";
 import SessionSummary from "./ui/SessionSummary";
 import HomeScreen from "./ui/HomeScreen";
 import LoginScreen from "./ui/LoginScreen";
+import { useAuth } from "./contexts/AuthContext";
 
 export default function App() {
+  const { isAuthenticated, logout, loading } = useAuth();
+
+  
   const [stats, setStats] = useState(null);
   const [roundKey, setRoundKey] = useState(0);
   const [screen, setScreen] = useState("HOME");
   const [uiMode, setUiMode] = useState("HOME");
-
+  
   // Keep difficulty across sessions
   const [persistentDifficulty, setPersistentDifficulty] = useState(null);
-
+  
   const [overlayApi, setOverlayApi] = useState(null);
   const [roundSummary, setRoundSummary] = useState(null);
   const [sessionSummary, setSessionSummary] = useState(null);
-
+  
+  if (loading) return null;
   const handleSessionFinish = (session) => {
     if (!session || !session.rounds || session.rounds.length === 0) return;
 
@@ -96,7 +101,8 @@ export default function App() {
               }}
               onSettings={() => console.log("Settings clicked")}
               onLeaderboard={() => console.log("Leaderboard clicked")}
-              onLogin={() => setScreen("LOGIN")}
+              onLogin={isAuthenticated ? logout : () => setScreen("LOGIN")}
+              isAuthenticated={isAuthenticated}
             />
           )}
           {screen === "LOGIN" && (

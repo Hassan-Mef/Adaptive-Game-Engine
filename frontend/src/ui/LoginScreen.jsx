@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import "../styles/global.css";
 import { loginPlayer } from "../api/player";
+import { useAuth } from "../contexts/AuthContext";
+
 
 export default function LoginScreen({ onBack, onLoginSuccess }) {
   const [activeTab, setActiveTab] = useState("login");
@@ -9,26 +11,29 @@ export default function LoginScreen({ onBack, onLoginSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const { login } = useAuth();
+
   const switchTab = (tab) => setActiveTab(tab);
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    try {
-      const result = await loginPlayer(username, password);
-      console.log("Login Success:", result);
+  try {
+    const result = await loginPlayer(username, password);
 
-      // TODO: store token or user info in context/localStorage if needed
-      if (onLoginSuccess) onLoginSuccess(result);
-    } catch (err) {
-      setError(err.message);
-      console.error("Login failed:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    // 🔐 STORE JWT + USER IN CONTEXT
+    login(result.token, result.user);
+
+    if (onLoginSuccess) onLoginSuccess();
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleSignup = (e) => {
     e.preventDefault();
