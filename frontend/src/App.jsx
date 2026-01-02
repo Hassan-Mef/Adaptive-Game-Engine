@@ -29,21 +29,20 @@ export default function App() {
   if (loading) return null;
 
   const handleSessionFinish = async (session) => {
-  if (!session || !session.rounds || session.rounds.length === 0) return;
+    if (!session || !session.rounds || session.rounds.length === 0) return;
 
-  console.log("[APP] Session Finished:", session);
+    console.log("[APP] Session Finished:", session);
 
-  if (sessionId) {
-    await import("./api/game").then(({ endSession }) =>
-      endSession(sessionId)
-    );
-  }
+    if (sessionId) {
+      await import("./api/game").then(({ endSession }) =>
+        endSession(sessionId)
+      );
+    }
 
-  setPersistentDifficulty(session.finalDifficulty);
-  setSessionSummary(session);
-  setUiMode("SESSION_SUMMARY");
-};
-
+    setPersistentDifficulty(session.finalDifficulty);
+    setSessionSummary(session);
+    setUiMode("SESSION_SUMMARY");
+  };
 
   return (
     <div
@@ -124,7 +123,14 @@ export default function App() {
           zIndex: 10,
         }}
       >
-        <div style={{ pointerEvents: "auto", width: "100%", height: "100%" }}>
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            pointerEvents: uiMode === "GAME" ? "none" : "auto",
+            userSelect: uiMode === "GAME" ? "none" : "auto",
+          }}
+        >
           {screen === "HOME" && uiMode === "HOME" && (
             <HomeScreen
               onPlay={async () => {

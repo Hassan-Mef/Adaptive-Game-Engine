@@ -67,6 +67,13 @@ button:focus-visible {
   }
 } */
 
+* {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+
 body, html {
     font-family: 'Teko', sans-serif;
     margin: 0;
