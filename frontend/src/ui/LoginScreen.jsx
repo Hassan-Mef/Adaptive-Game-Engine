@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import "../styles/global.css";
-import { loginPlayer } from "../api/player";
+import { loginPlayer, registerPlayer } from "../api/player";
 import { useAuth } from "../contexts/AuthContext";
-
 
 export default function LoginScreen({ onBack, onLoginSuccess }) {
   const [activeTab, setActiveTab] = useState("login");
@@ -11,34 +10,60 @@ export default function LoginScreen({ onBack, onLoginSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // states for signup
+  const [signupEmail, setSignupEmail] = useState("");
+  const [signupUsername, setSignupUsername] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupConfirm, setSignupConfirm] = useState("");
+  const [signupError, setSignupError] = useState("");
+  const [signupLoading, setSignupLoading] = useState(false);
+
   const { login } = useAuth();
 
   const switchTab = (tab) => setActiveTab(tab);
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
-
-  try {
-    const result = await loginPlayer(username, password);
-
-    // 🔐 STORE JWT + USER IN CONTEXT
-    login(result.token, result.user);
-
-    if (onLoginSuccess) onLoginSuccess();
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-  const handleSignup = (e) => {
     e.preventDefault();
-    // TODO: add signup logic here
-    console.log("Signup submitted");
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await loginPlayer(username, password);
+
+      // 🔐 STORE JWT + USER IN CONTEXT
+      login(result.token, result.user);
+
+      if (onLoginSuccess) onLoginSuccess();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setSignupError("");
+
+    if (signupPassword !== signupConfirm) {
+      setSignupError("Passwords do not match");
+      return;
+    }
+
+    setSignupLoading(true);
+
+    try {
+      await registerPlayer(signupUsername, signupEmail, signupPassword);
+
+      // Success → switch to login
+      setActiveTab("login");
+      setUsername(signupUsername);
+      setPassword("");
+    } catch (err) {
+      setSignupError(err.message);
+    } finally {
+      setSignupLoading(false);
+    }
   };
 
   return (
@@ -75,7 +100,9 @@ export default function LoginScreen({ onBack, onLoginSuccess }) {
 
           {/* Login Form */}
           <form
-            className={`auth-form ${activeTab === "login" ? "active-form" : ""}`}
+            className={`auth-form ${
+              activeTab === "login" ? "active-form" : ""
+            }`}
             style={{ display: activeTab === "login" ? "flex" : "none" }}
             onSubmit={handleLogin}
           >
@@ -115,7 +142,9 @@ export default function LoginScreen({ onBack, onLoginSuccess }) {
           </form>
           {/* Signup Form */}
           <form
-            className={`auth-form ${activeTab === "signup" ? "active-form" : ""}`}
+            className={`auth-form ${
+              activeTab === "signup" ? "active-form" : ""
+            }`}
             style={{ display: activeTab === "signup" ? "flex" : "none" }}
             onSubmit={handleSignup}
           >
@@ -123,13 +152,25 @@ export default function LoginScreen({ onBack, onLoginSuccess }) {
 
             <div className="input-group">
               <label>EMAIL</label>
-              <input type="email" placeholder="soldier@example.com" required />
+              <input
+                type="email"
+                placeholder="soldier@example.com"
+                value={signupEmail}
+                onChange={(e) => setSignupEmail(e.target.value)}
+                required
+              />
             </div>
 
             <div className="input-row">
               <div className="input-group">
                 <label>CODENAME (USER)</label>
-                <input type="text" placeholder="Username" required />
+                <input
+                  type="text"
+                  placeholder="Username"
+                  value={signupUsername}
+                  onChange={(e) => setSignupUsername(e.target.value)}
+                  required
+                />
               </div>
               <div className="input-group short">
                 <label>AGE</label>
@@ -139,12 +180,24 @@ export default function LoginScreen({ onBack, onLoginSuccess }) {
 
             <div className="input-group">
               <label>PASSWORD</label>
-              <input type="password" placeholder="Create Password" required />
+              <input
+                type="password"
+                placeholder="Create Password"
+                value={signupPassword}
+                onChange={(e) => setSignupPassword(e.target.value)}
+                required
+              />
             </div>
 
             <div className="input-group">
               <label>CONFIRM</label>
-              <input type="password" placeholder="Confirm Password" required />
+              <input
+                type="password"
+                placeholder="Confirm Password"
+                value={signupConfirm}
+                onChange={(e) => setSignupConfirm(e.target.value)}
+                required
+              />
             </div>
 
             <div className="terms-group">
@@ -154,8 +207,12 @@ export default function LoginScreen({ onBack, onLoginSuccess }) {
               </label>
             </div>
 
-            <button type="submit" className="menu-button secondary-button full-width">
-              REGISTER
+            <button
+              type="submit"
+              className="menu-button secondary-button full-width"
+              disabled={signupLoading}
+            >
+              {signupLoading ? "Registering..." : "REGISTER"}
             </button>
           </form>
         </div>
