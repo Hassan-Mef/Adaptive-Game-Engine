@@ -40,7 +40,7 @@ export function getDifficultyProfile(tier) {
       return {
         targetScale: 0.6,
         spawnInterval: 1.2,
-        despawnTime: 2.0,
+        despawnTime: 3.0,
         movementSpeed: 2.5,
         movingTargets: true,
       };
@@ -49,7 +49,7 @@ export function getDifficultyProfile(tier) {
       return {
         targetScale: 0.8,
         spawnInterval: 1.6,
-        despawnTime: 3.5,
+        despawnTime: 4.5,
         movementSpeed: 1.2,
         movingTargets: false,
       };

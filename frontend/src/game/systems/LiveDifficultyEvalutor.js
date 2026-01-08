@@ -3,9 +3,9 @@ import { DIFFICULTY } from "./difficultySystem";
 /* ---------------- CONFIG ---------------- */
 
 const MAX_SUBLEVEL = {
-  EASY: 2,
-  MEDIUM: 1,
-  HARD: 0, // no progression beyond HARD (for now)
+  EASY: 3,
+  MEDIUM: 3,
+  HARD: 2, // no progression beyond HARD (for now)
 };
 
 // thresholds for improvement

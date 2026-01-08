@@ -30,13 +30,23 @@ async function logRound(req, res) {
 
 async function endSession(req, res) {
   const { sessionId } = req.body;
+  const playerId = req.user.playerId; // ✅ added
+
   try {
-    const result = await gameService.endGameSession(sessionId);
-    res.json({ success: true, data: result });
+    // ✅ Pass playerId so service can return difficulty
+    const difficulty = await gameService.endGameSession(sessionId, playerId);
+
+    res.json({
+      success: true,
+      data: {
+        difficulty, // ✅ frontend can now read updated difficulty
+      },
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 }
+
 /**
  * Get session entry difficulty state
  * Called BEFORE starting a session

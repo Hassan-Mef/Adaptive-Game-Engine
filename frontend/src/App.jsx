@@ -34,12 +34,21 @@ export default function App() {
     console.log("[APP] Session Finished:", session);
 
     if (sessionId) {
-      await import("./api/game").then(({ endSession }) =>
+      // ✅ Call backend and get updated difficulty
+      const result = await import("./api/game").then(({ endSession }) =>
         endSession(sessionId)
       );
+
+      // ✅ Update persistent difficulty
+      if (result?.data?.difficulty) {
+        const { DifficultyScore, RecommendedLevelID } = result.data.difficulty;
+        setPersistentDifficulty({
+          tier: "AUTO", // or map from RecommendedLevelID if needed
+          subLevel: DifficultyScore,
+        });
+      }
     }
 
-    setPersistentDifficulty(session.finalDifficulty);
     setSessionSummary(session);
     setUiMode("SESSION_SUMMARY");
   };
