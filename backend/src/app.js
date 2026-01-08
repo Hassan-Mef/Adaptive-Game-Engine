@@ -4,6 +4,7 @@ const cors = require('cors');
 const playerRoutes = require('./routes/player.routes');
 const gameRoutes = require('./routes/game.routes');
 const leaderboardRoutes = require('./routes/leaderboard.routes');
+const analyticsRoutes = require('./routes/analytics.routes');
 const { getPool } = require('./config/db');
 
 const app = express();
@@ -48,6 +49,8 @@ app.use('/api/game', gameRoutes);
 
 // Leaderboard endpoints
 app.use('/api/leaderboard', leaderboardRoutes);
+// Analytics endpoints
+app.use('/api/analytics', analyticsRoutes);
 
 /* ---------- FALLBACK HANDLER ---------- */
 
