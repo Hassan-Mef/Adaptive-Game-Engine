@@ -7,6 +7,7 @@ import RoundSummary from "./ui/RoundSummary";
 import SessionSummary from "./ui/SessionSummary";
 import HomeScreen from "./ui/HomeScreen";
 import LoginScreen from "./ui/LoginScreen";
+import Leaderboard from "./ui/Leaderboard";
 import { useAuth } from "./contexts/AuthContext";
 import { startSession, getSessionEntryState } from "./api/game";
 
@@ -175,7 +176,7 @@ export default function App() {
                 setUiMode("GAME");
               }}
               onSettings={() => console.log("Settings clicked")}
-              onLeaderboard={() => console.log("Leaderboard clicked")}
+              onLeaderboard={() => setScreen("LEADERBOARD")}
               onLogin={isAuthenticated ? logout : () => setScreen("LOGIN")}
               isAuthenticated={isAuthenticated}
             />
@@ -186,6 +187,10 @@ export default function App() {
               onBack={() => setScreen("HOME")}
               onLoginSuccess={() => setScreen("HOME")}
             />
+          )}
+
+          {screen === "LEADERBOARD" && (
+            <Leaderboard onBack={() => setScreen("HOME")} />
           )}
 
           {uiMode === "ROUND_SUMMARY" && (

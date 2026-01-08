@@ -368,3 +368,83 @@ input:focus {
 .helper-text a {
     color: white;
 }
+
+
+/* --- Leaderboard Specific Styles --- */
+
+.leaderboard-page {
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+/* Make the card wider for the table */
+.leaderboard-card {
+    width: 800px; 
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.table-container {
+    width: 100%;
+    overflow-y: auto;
+    margin-top: 10px;
+    border: 1px solid rgba(208, 0, 255, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+}
+
+.leaderboard-table th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-purple);
+    color: var(--electric-blue);
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid var(--neon-purple);
+    text-transform: uppercase;
+}
+
+.leaderboard-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #eee;
+}
+
+.leaderboard-table tr:hover {
+    background: rgba(208, 0, 255, 0.1);
+}
+
+/* Custom Highlights for the Table */
+.highlight-blue {
+    color: var(--electric-blue);
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+}
+
+.highlight-purple {
+    color: var(--neon-purple);
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(208, 0, 255, 0.5);
+}
+
+/* Custom Scrollbar for the table */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+}
+.table-container::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+.table-container::-webkit-scrollbar-thumb {
+    background: var(--neon-purple);
+    border-radius: 4px;
+}
