@@ -61,7 +61,12 @@ async function endGameSession(attemptId, playerId) {
     PlayerID: { type: sql.Int, value: playerId },
   });
 
-  // 4️⃣ Get updated difficulty
+  // 4️⃣ Generate performance metrics
+  await executeSP("sp_GeneratePerformanceMetrics", {
+    AttemptID: { type: sql.Int, value: attemptId },
+  });
+
+  // 5️⃣ Get updated difficulty
   const difficultyResult = await executeSP(
     "sp_RecommendDifficultyLevel",
     {

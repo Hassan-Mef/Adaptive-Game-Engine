@@ -1,4 +1,4 @@
-CREATE VIEW vw_PlayerLeaderboard AS
+CREATE OR ALTER VIEW vw_PlayerLeaderboard AS
 SELECT
     p.player_id,
     p.username,

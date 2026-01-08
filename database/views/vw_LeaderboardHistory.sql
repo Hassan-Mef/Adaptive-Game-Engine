@@ -10,3 +10,4 @@ JOIN Players p ON l.player_id = p.player_id;
 GO
 
 
+SELECT * FROM vw_LeaderboardHistory;

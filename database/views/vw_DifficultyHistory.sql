@@ -1,18 +1,20 @@
-CREATE VIEW vw_DifficultyHistory AS
+CREATE OR ALTER VIEW vw_DifficultyHistory AS
 SELECT
     a.player_id,
     p.username,
 
     a.attempt_id,
-    a.start_time,
-    a.end_time,
+    a.session_start,
+    a.session_end,
 
-    dp.difficulty_score,
-    l.level_name,
-    l.difficulty_rank
+    a.final_difficulty_tier,
+    a.final_difficulty_value
 
 FROM Attempts a
 JOIN Players p ON a.player_id = p.player_id
-JOIN Difficulty_Profiles dp ON a.player_id = dp.player_id
-JOIN Levels l ON dp.recommended_level_id = l.level_id;
+WHERE a.session_end IS NOT NULL;
 GO
+
+
+
+SELECT * FROM vw_DifficultyHistory;
