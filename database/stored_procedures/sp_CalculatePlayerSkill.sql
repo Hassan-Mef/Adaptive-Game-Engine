@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_CalculatePlayerSkill
+ALTER PROCEDURE sp_CalculatePlayerSkill
     @PlayerID INT,
     @DifficultyScore INT OUTPUT
 AS
@@ -18,7 +18,7 @@ BEGIN
         @AvgSessionScore = AVG(
     CASE
         WHEN a.total_score < 0 THEN 0
-        ELSE a.total_score
+        ELSE LEAST(a.total_score, 1000)
     END
         ),
         @AvgSessionAccuracy = AVG(a.avg_accuracy)
@@ -50,15 +50,35 @@ BEGIN
     /* -------------------------------
        Final weighted skill score
        ------------------------------- */
+
+    DECLARE @DifficultyWeight FLOAT;
+
+SELECT
+    @DifficultyWeight = AVG(
+        CASE l.difficulty_rank
+            WHEN 1 THEN 0.8   -- EASY
+            WHEN 5 THEN 1.0   -- MEDIUM
+            WHEN 9 THEN 1.2   -- HARD
+            ELSE 1.0
+        END
+    )
+FROM Attempts a
+JOIN Levels l ON a.level_id = l.level_id
+WHERE a.player_id = @PlayerID
+  AND a.session_end IS NOT NULL;
+
+
     SET @DifficultyScore = CAST(
     (
-        (CASE WHEN @AvgSessionScore < 0 THEN 0 ELSE @AvgSessionScore END * 0.4) +
-        (@AvgSessionAccuracy * 30) +
-        ((100 - ISNULL(@AvgReactionTime, 100)) * 0.2) +
-        (ISNULL(@Consistency, 0) * 0.1)
-    )
-    AS INT
+        (
+          (@AvgSessionScore * 0.4) +
+          (@AvgSessionAccuracy * 30) +
+          ((100 - ISNULL(@AvgReactionTime, 100)) * 0.2) +
+          (ISNULL(@Consistency, 0) * 0.1)
+        ) * ISNULL(@DifficultyWeight, 1.0)
+    ) AS INT
 );
+
 
     -- Clamp
     SET @DifficultyScore =
