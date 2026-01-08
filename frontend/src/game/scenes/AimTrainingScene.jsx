@@ -20,7 +20,7 @@
     const [particles, setParticles] = useState([]);
 
     const game = useGameLoop({
-      duration: 5,
+      duration: 20,
       onFinish: onSessionFinish,
       onRoundEnd,
     });
@@ -67,7 +67,7 @@
 
       Gun.shoot();
       const hit = window.__CHECK_HITS__?.();
-      if (!hit) game.onMiss();
+      if (!hit) game.onMiss("PLAYER");
     };
 
     useEffect(() => {
@@ -106,7 +106,7 @@
             game.recordHit();
             game.recordReaction(reactionTime);
           }}
-          onMiss={() => game.onMiss()}
+          onMiss={() => game.onMiss("TIMEOUT")}
         />
         <PointerLockControls enabled={game.isRunning} />
       </>

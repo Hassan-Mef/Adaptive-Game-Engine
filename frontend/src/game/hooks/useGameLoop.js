@@ -108,7 +108,10 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
         });
 
         // Evaluate achievements for this round
-        const achievements = evaluateAchievements(liveStats, difficultyRef.current);
+        const achievements = evaluateAchievements(
+          liveStats,
+          difficultyRef.current
+        );
         achievements.forEach((ach) =>
           pushEvent({ type: "ACHIEVEMENT", label: ach.name })
         );
@@ -117,7 +120,7 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
         sessionRef.current.rounds.push({
           round: livesCompletedRef.current,
           stats: liveStats,
-          difficulty: currentDifficultySnapshot, 
+          difficulty: currentDifficultySnapshot,
           events: [...eventsRef.current],
           achievements,
         });
@@ -140,7 +143,7 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
 
           console.log("[SESSION] Completed");
           console.log("[SESSION SUMMARY]", sessionRef.current);
-          
+
           // IMPORTANT: Send a shallow copy so App receives a fresh object
           onFinish?.({ ...sessionRef.current });
         } else {
@@ -214,7 +217,9 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
     setTimeLeft(GAME_CONFIG.LIVE_ROUND_DURATION);
     setIsRunning(true);
 
-    console.log(`[RESUME] Starting live round ${livesCompletedRef.current + 1}`);
+    console.log(
+      `[RESUME] Starting live round ${livesCompletedRef.current + 1}`
+    );
     pushEvent({
       type: "ROUND",
       label: `Live Round ${livesCompletedRef.current + 1}`,
@@ -235,8 +240,18 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
         statsRef.current.score += 10;
       }
     },
-    onMiss: () => {
-      if (isRunning) statsRef.current.score -= 10;
+    onMiss: (reason = "PLAYER") => {
+      if (!isRunning) return;
+
+      if (reason === "PLAYER") {
+        statsRef.current.score -= 10;
+      }
+
+      if (reason === "TIMEOUT") {
+        // Option A: no penalty
+        // Option B: small penalty like -2
+        statsRef.current.score -= 2;
+      }
     },
     recordReaction: (t) => statsRef.current.reactionTimes.push(t),
     getStats: () => statsRef.current,
