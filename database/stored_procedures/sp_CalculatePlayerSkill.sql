@@ -15,11 +15,16 @@ BEGIN
        Session-level performance
        ------------------------------- */
     SELECT
-        @AvgSessionScore = AVG(a.total_score),
+        @AvgSessionScore = AVG(
+    CASE
+        WHEN a.total_score < 0 THEN 0
+        ELSE a.total_score
+    END
+        ),
         @AvgSessionAccuracy = AVG(a.avg_accuracy)
     FROM Attempts a
     WHERE a.player_id = @PlayerID
-      AND a.session_end IS NOT NULL;
+        AND a.session_end IS NOT NULL;
 
     /* -------------------------------
        Round-level behavior
@@ -29,7 +34,7 @@ BEGIN
         @AvgReactionTime = AVG(r.avg_reaction_time),
         @Consistency = 100 - STDEV(r.accuracy)
     FROM Attempts a
-    JOIN Session_Rounds r
+        JOIN Session_Rounds r
         ON a.attempt_id = r.attempt_id
     WHERE a.player_id = @PlayerID;
 
@@ -46,11 +51,22 @@ BEGIN
        Final weighted skill score
        ------------------------------- */
     SET @DifficultyScore = CAST(
-        (@AvgSessionScore * 0.4) +
+    (
+        (CASE WHEN @AvgSessionScore < 0 THEN 0 ELSE @AvgSessionScore END * 0.4) +
         (@AvgSessionAccuracy * 30) +
         ((100 - ISNULL(@AvgReactionTime, 100)) * 0.2) +
         (ISNULL(@Consistency, 0) * 0.1)
-        AS INT
-    );
+    )
+    AS INT
+);
+
+    -- Clamp
+    SET @DifficultyScore =
+    CASE
+        WHEN @DifficultyScore < 0 THEN 0
+        WHEN @DifficultyScore > 100 THEN 100
+        ELSE @DifficultyScore
+    END;
+
 END;
 GO
