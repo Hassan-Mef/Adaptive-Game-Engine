@@ -109,10 +109,23 @@ async function getSessionSummary(req, res) {
   }
 }
 
+async function getAchievements(req, res) {
+  const playerId = req.user.playerId;
+
+  const achievements = await gameService.getPlayerAchievements(playerId);
+
+  res.json({
+    success: true,
+    data: achievements,
+  });
+}
+
+
 module.exports = {
   startSession,
   logRound,
   endSession,
   getSessionEntryState,
   getSessionSummary,
+  getAchievements,
 };
