@@ -46,16 +46,22 @@ async function logSessionRound(roundData) {
  * ✅ NEW: Return updated difficulty profile after session ends
  */
 async function endGameSession(attemptId, playerId) {
-  // 1️⃣ End session normally
+  // 1️⃣ End session
   await executeSP("sp_EndGameSession", {
     attempt_id: { type: sql.Int, value: attemptId },
   });
 
+  // 2️⃣ Evaluate achievements
   await executeSP("sp_EvaluateAchievements", {
     AttemptID: { type: sql.Int, value: attemptId },
   });
 
-  // 2️⃣ Get updated difficulty
+  // 3️⃣ Log leaderboard snapshot
+  await executeSP("sp_LogLeaderboardSnapshot", {
+    PlayerID: { type: sql.Int, value: playerId },
+  });
+
+  // 4️⃣ Get updated difficulty
   const difficultyResult = await executeSP(
     "sp_RecommendDifficultyLevel",
     {
@@ -68,9 +74,9 @@ async function endGameSession(attemptId, playerId) {
     }
   );
 
-  // 3️⃣ Return the updated difficulty
   return difficultyResult.output;
 }
+
 
 /**
  * Get session entry difficulty state

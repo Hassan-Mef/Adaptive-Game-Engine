@@ -1,3 +1,5 @@
+import "../styles/global.css";
+
 export default function SessionSummary({ data, onRestart, onExit }) {
   if (!data) return null;
 
@@ -23,34 +25,37 @@ export default function SessionSummary({ data, onRestart, onExit }) {
 
   return (
     <div
+      className="auth-wrapper"
       style={{
         position: "fixed",
         inset: 0,
-        background: "rgba(0,0,0,0.95)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 100,
+        zIndex: 1000,
         pointerEvents: "auto",
       }}
     >
+      <div className="background-overlay"></div>
       <div
+        className="auth-card"
         style={{
-          background: "#1a1a1a",
-          padding: "40px",
-          borderRadius: "20px",
-          border: "1px solid #333",
-          color: "white",
           textAlign: "center",
           width: "500px",
           maxHeight: "90vh",
           overflowY: "auto",
         }}
       >
-        <h1 style={{ margin: "0 0 10px 0", color: "#4ebfff" }}>
+        <h1
+          className="game-title"
+          style={{ margin: "0 0 10px 0", fontSize: "3rem" }}
+        >
           Session Complete
         </h1>
-        <p style={{ color: "#888", marginBottom: "20px" }}>
+        <p
+          style={{
+            color: "var(--neon-purple)",
+            marginBottom: "20px",
+            fontSize: "1.2rem",
+          }}
+        >
           Final Tier: {finalDifficulty?.tier} {finalDifficulty?.subLevel}
         </p>
 
@@ -59,18 +64,19 @@ export default function SessionSummary({ data, onRestart, onExit }) {
           style={{
             display: "flex",
             justifyContent: "space-around",
-            background: "#252525",
+            background: "rgba(208, 0, 255, 0.1)",
             padding: "20px",
-            borderRadius: "12px",
+            border: "1px solid rgba(208, 0, 255, 0.2)",
             marginBottom: "25px",
           }}
         >
           <div>
             <div
               style={{
-                color: "#4ebfff",
-                fontSize: "1.5rem",
+                color: "var(--electric-blue)",
+                fontSize: "1.8rem",
                 fontWeight: "bold",
+                textShadow: "0 0 10px var(--electric-blue)",
               }}
             >
               {accuracy}%
@@ -80,9 +86,10 @@ export default function SessionSummary({ data, onRestart, onExit }) {
           <div>
             <div
               style={{
-                color: "#4ebfff",
-                fontSize: "1.5rem",
+                color: "var(--electric-blue)",
+                fontSize: "1.8rem",
                 fontWeight: "bold",
+                textShadow: "0 0 10px var(--electric-blue)",
               }}
             >
               {avgReaction}ms
@@ -98,8 +105,9 @@ export default function SessionSummary({ data, onRestart, onExit }) {
           style={{
             textAlign: "left",
             fontSize: "0.9rem",
-            color: "#888",
+            color: "var(--neon-purple)",
             marginBottom: "10px",
+            letterSpacing: "1px",
           }}
         >
           ROUND-BY-ROUND PROGRESS
@@ -124,16 +132,16 @@ export default function SessionSummary({ data, onRestart, onExit }) {
                   display: "flex",
                   alignItems: "center",
                   gap: "10px",
-                  background: "#222",
+                  background: "rgba(255,255,255,0.05)",
                   padding: "10px",
-                  borderRadius: "6px",
+                  borderLeft: "2px solid var(--electric-blue)",
                 }}
               >
                 <span
                   style={{
                     width: "30px",
                     fontWeight: "bold",
-                    color: "#4ebfff",
+                    color: "var(--electric-blue)",
                   }}
                 >
                   R{r.round}
@@ -142,8 +150,8 @@ export default function SessionSummary({ data, onRestart, onExit }) {
                   style={{
                     flex: 1,
                     height: "8px",
-                    background: "#333",
-                    borderRadius: "4px",
+                    background: "rgba(0,0,0,0.5)",
+                    borderRadius: "0px",
                     overflow: "hidden",
                   }}
                 >
@@ -151,7 +159,8 @@ export default function SessionSummary({ data, onRestart, onExit }) {
                     style={{
                       width: `${roundAcc}%`,
                       height: "100%",
-                      background: "#4ebfff",
+                      background: "var(--electric-blue)",
+                      boxShadow: "0 0 10px var(--electric-blue)",
                       transition: "width 1s ease-out",
                     }}
                   />
@@ -160,7 +169,7 @@ export default function SessionSummary({ data, onRestart, onExit }) {
                   {Math.round(roundAcc)}%
                 </span>
                 <span
-                  style={{ width: "70px", fontSize: "0.7rem", color: "#888" }}
+                  style={{ width: "70px", fontSize: "1.0rem", color: "#888" }}
                 >
                   {r.difficulty.tier}
                 </span>
@@ -171,30 +180,16 @@ export default function SessionSummary({ data, onRestart, onExit }) {
 
         <div style={{ display: "flex", gap: "10px" }}>
           <button
+            className="menu-button_summary primary-button_summary"
             onClick={onRestart}
-            style={{
-              flex: 1,
-              padding: "15px",
-              background: "#4ebfff",
-              border: "none",
-              borderRadius: "8px",
-              fontWeight: "bold",
-              cursor: "pointer",
-            }}
+            style={{ flex: 1, transform: "skew(0deg)" }}
           >
             RESTART SESSION
           </button>
           <button
+            className="menu-button_summary secondary-button_summary"
             onClick={onExit}
-            style={{
-              flex: 1,
-              padding: "15px",
-              background: "#333",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-            }}
+            style={{ flex: 1, transform: "skew(0deg)" }}
           >
             EXIT TO MENU
           </button>

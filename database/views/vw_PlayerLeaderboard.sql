@@ -27,3 +27,6 @@ GROUP BY
     dp.difficulty_score,
     l.level_name;
 GO
+
+
+SELECT * FROM vw_PlayerLeaderboard;

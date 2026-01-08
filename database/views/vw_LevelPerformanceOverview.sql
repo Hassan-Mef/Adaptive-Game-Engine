@@ -21,3 +21,6 @@ GROUP BY
     l.level_name,
     l.difficulty_rank;
 GO
+
+
+SELECT * FROM vw_LevelPerformanceOverview;

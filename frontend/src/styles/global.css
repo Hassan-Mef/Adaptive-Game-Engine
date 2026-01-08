@@ -448,3 +448,125 @@ input:focus {
     background: var(--neon-purple);
     border-radius: 4px;
 }
+
+
+/* --- Summary & Stat Styles --- */
+
+/* A smaller version of the game title for headings */
+.summary-title {
+    font-size: 3rem;
+    color: white;
+    text-transform: uppercase;
+    text-shadow: 0 0 15px var(--neon-purple);
+    margin-bottom: 10px;
+}
+
+.stats-grid {
+    display: flex;
+    justify-content: space-around;
+    background: rgba(208, 0, 255, 0.1);
+    border: 1px solid rgba(208, 0, 255, 0.2);
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.stat-value {
+    color: var(--electric-blue);
+    font-size: 2rem;
+    font-weight: bold;
+    text-shadow: 0 0 10px var(--electric-blue);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Progress Bar Styling */
+.progress-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    border-left: 3px solid var(--electric-blue);
+    margin-bottom: 8px;
+}
+
+.progress-bar-bg {
+    flex: 1;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: var(--electric-blue);
+    box-shadow: 0 0 15px var(--electric-blue);
+    transition: width 1s ease-out;
+}
+
+/* Event tags in Round Summary */
+.event {
+    padding: 5px 10px;
+    margin: 5px;
+    background: rgba(0, 242, 255, 0.1);
+    border: 1px solid var(--electric-blue);
+    display: inline-block;
+    font-size: 0.9rem;
+}
+
+.highlight-text {
+    color: var(--electric-blue);
+    font-weight: bold;
+}
+
+
+/* modifed buttin css for summaries */
+.menu-button_summary {
+    padding: 8px 28px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    background: transparent;
+    color: white;
+    border: 2px solid rgba(255,255,255,0.1);
+    font-family: 'Teko', sans-serif;
+    transition: 0.2s ease-in-out;
+    text-transform: uppercase;
+    
+    /* Slight skew for action feel */
+    transform: skew(-10deg); 
+}
+
+/* Play Button */
+.primary-button_summary {
+    background: var(--electric-blue);
+    border: none;
+    color: #05020a;
+    padding: 13px 60px;
+    font-size: 1.5rem;
+    box-shadow: 0 0 30px rgba(0, 242, 255, 0.4);
+}
+
+.primary-button_summary:hover {
+    transform: skew(-10deg) scale(1.05);
+    background: white;
+    box-shadow: 0 0 60px rgba(0, 242, 255, 0.8);
+}
+
+/* Secondary Buttons */
+.secondary-button_summary {
+    border: 2px solid var(--neon-purple);
+    color: #fff;
+    box-shadow: inset 0 0 10px rgba(208, 0, 255, 0.2);
+}
+
+.secondary-button_summary:hover {
+    background: var(--neon-purple);
+    box-shadow: 0 0 30px var(--neon-purple);
+}

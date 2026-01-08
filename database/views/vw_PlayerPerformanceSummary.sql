@@ -25,3 +25,4 @@ GROUP BY
     p.player_id,
     p.username;
 GO
+
