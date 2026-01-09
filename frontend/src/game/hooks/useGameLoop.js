@@ -150,7 +150,6 @@ export default function useGameLoop({ duration = 20, onFinish, onRoundEnd }) {
           phaseRef.current = "ROUND_END";
           setIsRunning(false);
         }
-
         return;
       }
     }

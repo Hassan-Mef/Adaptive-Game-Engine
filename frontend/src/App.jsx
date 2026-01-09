@@ -9,6 +9,7 @@ import HomeScreen from "./ui/HomeScreen";
 import LoginScreen from "./ui/LoginScreen";
 import Leaderboard from "./ui/Leaderboard";
 import { useAuth } from "./contexts/AuthContext";
+import AnalyticsDashboard from "./ui/AnalyticsDashboard";
 import { startSession, getSessionEntryState } from "./api/game";
 
 export default function App() {
@@ -52,6 +53,12 @@ export default function App() {
 
     setSessionSummary(session);
     setUiMode("SESSION_SUMMARY");
+  };
+
+  const Difficulty_score_converter = (score) => {
+    if (score < 20) return "Easy";
+    if (score < 50 && score < 80) return "Medium";
+    return "Hard";
   };
 
   return (
@@ -143,39 +150,41 @@ export default function App() {
         >
           {screen === "HOME" && uiMode === "HOME" && (
             <HomeScreen
+              // Inside HomeScreen onPlay
               onPlay={async () => {
                 if (!isAuthenticated) {
                   setScreen("LOGIN");
                   return;
                 }
 
-                // Get recommended difficulty
+                // 1️⃣ Get previous difficulty
                 const entry = await getSessionEntryState();
                 console.log("[APP] Session Entry State:", entry);
 
-                // Start session
+                // 2️⃣ Start session
                 const attemptId = await startSession();
-                // debugging log
                 console.log("[APP] Started Session with ID:", attemptId);
                 setSessionId(attemptId);
 
-                // Apply difficulty (if exists)`
+                // 3️⃣ Apply difficulty if exists
                 if (entry.hasHistory) {
                   setPersistentDifficulty({
-                    tier: "AUTO", // or map from RecommendedLevelID
+                    tier: Difficulty_score_converter(entry.difficultyScore),
                     subLevel: entry.difficultyScore,
                   });
                 } else {
-                  setPersistentDifficulty(null);
+                  setPersistentDifficulty(null); // calibration required
                 }
 
-                // 4️⃣ Start game
+                // 4️⃣ Reset stats and round key
                 setStats(null);
                 setRoundKey((k) => k + 1);
+
+                // 5️⃣ Only show GAME screen AFTER persistentDifficulty is set
                 setScreen("GAME");
                 setUiMode("GAME");
               }}
-              onSettings={() => console.log("Settings clicked")}
+              onSettings={() => setScreen("ANALYTICS")}
               onLeaderboard={() => setScreen("LEADERBOARD")}
               onLogin={isAuthenticated ? logout : () => setScreen("LOGIN")}
               isAuthenticated={isAuthenticated}
@@ -187,6 +196,9 @@ export default function App() {
               onBack={() => setScreen("HOME")}
               onLoginSuccess={() => setScreen("HOME")}
             />
+          )}
+          {screen === "ANALYTICS" && (
+            <AnalyticsDashboard onBack={() => setScreen("HOME")} />
           )}
 
           {screen === "LEADERBOARD" && (
@@ -207,9 +219,17 @@ export default function App() {
           {uiMode === "SESSION_SUMMARY" && (
             <SessionSummary
               data={sessionSummary}
-              onRestart={() => {
-                setUiMode("GAME");
+              onRestart={async () => {
+                // Generate new session ID
+                const newAttemptId = await startSession();
+                setSessionId(newAttemptId);
+
+                // Reset persistent difficulty if you want to keep previous, keep as is
+                // Start new game loop
+                overlayApi?.resumeNextRound(); // optionally call start() if needed
                 setRoundKey((k) => k + 1);
+                setStats(null);
+                setUiMode("GAME");
               }}
               onExit={() => {
                 setSessionSummary(null);
