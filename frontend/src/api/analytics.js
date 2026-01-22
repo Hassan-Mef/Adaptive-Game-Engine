@@ -10,7 +10,7 @@ export const getPlayerPerformance = () =>
   api.get("/analytics/player-performance");
 
 export const getPlayerAchievements = () =>
-  api.get("/analytics/achievements");
+  api.get("/analytics/player-achievements");
 
 export const getPlayerLeaderboard = () =>
   api.get("/analytics/player-leaderboard");

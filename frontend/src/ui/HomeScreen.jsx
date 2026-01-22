@@ -3,7 +3,7 @@ import "../styles/global.css";
 import gun from "../assets/gun.png";
 export default function HomeScreen({
   onPlay,
-  onSettings,
+  onAnalytics,
   onLeaderboard,
   onLogin,
   isAuthenticated,
@@ -21,8 +21,8 @@ export default function HomeScreen({
         <h1 className="game-title">THUNDER STRIKE</h1>
 
         <div className="button-group">
-          <button className="menu-button secondary-button" onClick={onSettings}>
-            SETTINGS
+          <button className="menu-button secondary-button" onClick={onAnalytics}>
+            ANALYTICS
           </button>
           <button className="menu-button primary-button" onClick={onPlay}>
             PLAY

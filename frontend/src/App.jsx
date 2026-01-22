@@ -184,7 +184,7 @@ export default function App() {
                 setScreen("GAME");
                 setUiMode("GAME");
               }}
-              onSettings={() => setScreen("ANALYTICS")}
+              onAnalytics={() => setScreen("ANALYTICS")}
               onLeaderboard={() => setScreen("LEADERBOARD")}
               onLogin={isAuthenticated ? logout : () => setScreen("LOGIN")}
               isAuthenticated={isAuthenticated}

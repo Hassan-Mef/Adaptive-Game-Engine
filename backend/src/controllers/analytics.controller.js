@@ -58,7 +58,7 @@ exports.getPlayerLeaderboard = async (req, res, next) => {
  */
 exports.getPlayerAchievements = async (req, res, next) => {
   try {
-    const data = await analyticsService.fetchPlayerAchievements(req.user.player_id);
+    const data = await analyticsService.fetchPlayerAchievements(req.user.playerId);
     res.json({ success: true, data });
   } catch (err) {
     next(err);
@@ -71,7 +71,7 @@ exports.getPlayerAchievements = async (req, res, next) => {
 exports.getPlayerPerformance = async (req, res, next) => {
   try {
     console.log("JWT user object:", req.user); // 🔴 ADD THIS
-    const data = await analyticsService.fetchPlayerPerformance(req.user.player_id);
+    const data = await analyticsService.fetchPlayerPerformance(req.user.playerId);
     res.json({ success: true, data });
   } catch (err) {
     next(err);
