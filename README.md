@@ -76,6 +76,7 @@ MS SQL Server (Views + Procedures)
 ---
 
 ### 📊 Entity Relationship Diagram (ERD)
+[ERD Image](docs/ERD.png)
 
 ```
 Players ──┐
