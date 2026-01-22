@@ -76,7 +76,7 @@ MS SQL Server (Views + Procedures)
 ---
 
 ### 📊 Entity Relationship Diagram (ERD)
-[ERD Image](docs/ERD.png)
+
 
 ```
 Players ──┐
@@ -87,10 +87,7 @@ Players ──┐
 ├── Player_Achievements ── Achievements
 └── Leaderboard_Log
 ```
-
-
-*(ERD image can be attached here)*
-
+![ERD Image](docs/ERD.png)
 ---
 
 ## 👁️ Analytics Views (Read-Only Layer)
