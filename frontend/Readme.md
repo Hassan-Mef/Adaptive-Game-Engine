@@ -1,4 +1,4 @@
-# Adaptive Game Difficulty Engine – Frontend Documentation !(Outdated)
+# Adaptive Game Difficulty Engine – Frontend Documentation
 
 ## 📌 Project Overview
 

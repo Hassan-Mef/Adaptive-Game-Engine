@@ -1,4 +1,4 @@
-# Backend – Adaptive Game Difficulty Engine (Final Architecture)  !(Outdated)
+# Backend – Adaptive Game Difficulty Engine (Final Architecture)
 
 This document describes the **final backend architecture** of the *Adaptive Game Difficulty Engine*.  
 It is intended as a **handover / onboarding document** for anyone working on or extending the backend.

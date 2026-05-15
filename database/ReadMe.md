@@ -1,4 +1,4 @@
-# Adaptive Game Engine – Database Design & Architecture  !(Outdated)
+# Adaptive Game Engine – Database Design & Architecture
 
 ## Overview
 
